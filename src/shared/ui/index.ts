@@ -9,3 +9,4 @@ export { Logo } from './Logo';
 export { Input } from './Input';
 export { Card } from './Card';
 export { Segmented } from './Segmented';
+export { InitialAvatar } from './InitialAvatar';

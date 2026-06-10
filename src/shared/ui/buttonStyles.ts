@@ -1,7 +1,7 @@
 // Классы кнопки дизайн-системы (см. docs/14, §5). Вынесено отдельно от компонента,
 // чтобы переиспользовать на ссылках-кнопках (<Link className={buttonStyles(...)}>).
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const base =
   'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors ' +
@@ -12,6 +12,7 @@ const sizes: Record<ButtonSize, string> = {
   sm: 'h-7 px-3 text-xs',
   md: 'h-9 px-4 text-sm',
   lg: 'h-10 px-5 text-sm',
+  xl: 'h-12 px-6 text-base',
 };
 
 const variants: Record<ButtonVariant, string> = {

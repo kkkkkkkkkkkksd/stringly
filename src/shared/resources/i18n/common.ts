@@ -13,6 +13,7 @@ export const common = {
     copy: 'Скопировать',
     search: 'Поиск',
     back: '← На главную',
+    home: 'На главную',
   },
   state: {
     loading: 'Загрузка…',

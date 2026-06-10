@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Logo } from '@/shared/ui';
+import { Badge, Logo } from '@/shared/ui';
 import { texts } from '@/shared/resources/i18n';
 import { useSession } from '@/features/auth/model/sessionStore';
 import { useLogout } from '@/features/auth/model/useAuth';
+import { ProjectSwitcher } from '@/features/projects/ui/ProjectSwitcher';
+import { useRole } from '@/features/projects/model/access';
 
 const t = texts.app;
 
@@ -18,6 +20,7 @@ const navItem = ({ isActive }: { isActive: boolean }) =>
 export function AppLayout(): ReactNode {
   const navigate = useNavigate();
   const user = useSession((s) => s.user);
+  const role = useRole();
   const logout = useLogout();
 
   return (
@@ -26,10 +29,7 @@ export function AppLayout(): ReactNode {
         <div className="mb-4 px-1">
           <Logo />
         </div>
-        <div className="mb-4 flex items-center justify-between rounded-md border border-[var(--border)] px-3 py-2 text-sm text-ink">
-          <span>Mobile App</span>
-          <span className="text-xs text-faint">{t.projectSwitcher.soon}</span>
-        </div>
+        <ProjectSwitcher />
         <nav className="space-y-1">
           <NavLink to="/app/table" className={navItem}>
             {t.nav.table}
@@ -40,7 +40,10 @@ export function AppLayout(): ReactNode {
         </nav>
 
         <div className="mt-auto border-t border-[var(--border)] pt-3">
-          <p className="truncate px-1 text-xs text-muted">{user?.email}</p>
+          <div className="flex items-center justify-between px-1">
+            <p className="truncate text-xs text-muted">{user?.email}</p>
+            <Badge tone="primary">{role}</Badge>
+          </div>
           <button
             type="button"
             onClick={() => {

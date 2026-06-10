@@ -36,8 +36,12 @@ v2 (см. F-27); до этого в проекте по сути один admin.
 
 Права проверяются на двух уровнях (UI — для удобства, бэк — для безопасности):
 
+Реализация (как сделано): чистая матрица `can(role, perm)` — в `shared/core/permissions.ts`;
+хук `usePermission` и компонент `<Can>` — в `features/projects` (берут роль из активного
+проекта). Пример матрицы:
+
 ```ts
-// shared/lib/permissions.ts
+// shared/core/permissions.ts
 const CAN: Record<Role, Set<Permission>> = {
   admin:      new Set(['table:read','table:write','keys:add','lang:manage',
                         'members:manage','tokens:manage','project:manage']),

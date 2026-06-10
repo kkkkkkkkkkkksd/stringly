@@ -71,30 +71,34 @@ function TablePreview() {
 export function LandingPage(): ReactNode {
   return (
     <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between border-b border-[var(--border)] bg-surface px-6 py-3">
-        <Logo size={20} />
-        <nav className="flex items-center gap-3">
-          <Link to="/login" className="text-sm text-muted hover:text-ink">
-            {t.nav.signIn}
-          </Link>
-          <Link to="/register" className={buttonStyles({ variant: 'primary', size: 'sm' })}>
-            {t.nav.signUp}
-          </Link>
-        </nav>
+      <header className="border-b border-[var(--border)] bg-surface">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <Logo size={22} />
+          <nav className="flex items-center gap-3">
+            <Link to="/login" className="text-sm text-muted hover:text-ink">
+              {t.nav.signIn}
+            </Link>
+            <Link to="/register" className={buttonStyles({ variant: 'primary', size: 'md' })}>
+              {t.nav.signUp}
+            </Link>
+          </nav>
+        </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-10 px-6 py-16 md:grid-cols-2">
+      <main className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-10 px-6 py-20 md:grid-cols-2">
         <div>
           <Badge tone="primary" pill>
             {t.badge}
           </Badge>
-          <h1 className="mt-4 text-3xl font-semibold leading-tight text-ink">{t.title}</h1>
-          <p className="mt-3 max-w-md text-muted">{t.subtitle}</p>
-          <div className="mt-6 flex items-center gap-3">
-            <Link to="/register" className={buttonStyles({ variant: 'primary', size: 'lg' })}>
+          <h1 className="mt-5 text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">
+            {t.title}
+          </h1>
+          <p className="mt-4 max-w-md text-lg text-muted">{t.subtitle}</p>
+          <div className="mt-8 flex items-center gap-3">
+            <Link to="/register" className={buttonStyles({ variant: 'primary', size: 'xl' })}>
               {t.ctaPrimary}
             </Link>
-            <Link to="/login" className={buttonStyles({ variant: 'secondary', size: 'lg' })}>
+            <Link to="/login" className={buttonStyles({ variant: 'secondary', size: 'xl' })}>
               {t.ctaSecondary}
             </Link>
           </div>
@@ -103,14 +107,14 @@ export function LandingPage(): ReactNode {
       </main>
 
       <section className="border-t border-[var(--border)] bg-surface">
-        <div className="mx-auto grid w-full max-w-5xl gap-6 px-6 py-10 sm:grid-cols-3">
+        <div className="mx-auto grid w-full max-w-5xl gap-8 px-6 py-12 sm:grid-cols-3">
           {features.map((f) => (
             <div key={f.title}>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-tint text-primary-hover">
-                <f.Icon size={18} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-tint text-primary-hover">
+                <f.Icon size={20} />
               </div>
-              <h3 className="mt-3 text-sm font-medium text-ink">{f.title}</h3>
-              <p className="mt-1 text-[13px] leading-relaxed text-muted">{f.desc}</p>
+              <h3 className="mt-4 text-base font-medium text-ink">{f.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">{f.desc}</p>
             </div>
           ))}
         </div>

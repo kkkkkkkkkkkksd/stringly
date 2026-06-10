@@ -1,7 +1,7 @@
 // Тексты рабочей области (каркас, заглушки экранов) и 404.
 export const app = {
   nav: { table: 'Таблица', settings: 'Настройки' },
-  projectSwitcher: { soon: 'скоро ▾' },
+  projectSwitcher: { soon: 'скоро ▾', tooltip: 'Переключение и создание проектов — скоро' },
   table: {
     title: 'Таблица переводов',
     placeholder:

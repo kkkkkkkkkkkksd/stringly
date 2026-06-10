@@ -56,11 +56,11 @@ function LoginForm(): ReactNode {
     login.mutate(values, { onSuccess: () => navigate('/app') });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
-      <Input label={t.fields.email} type="email" autoComplete="email" placeholder={t.placeholders.email} error={errors.email?.message} {...register('email')} />
-      <Input label={t.fields.password} type="password" autoComplete="current-password" placeholder={t.placeholders.password} error={errors.password?.message} {...register('password')} />
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3.5">
+      <Input inputSize="lg" label={t.fields.email} type="email" autoComplete="email" placeholder={t.placeholders.email} error={errors.email?.message} {...register('email')} />
+      <Input inputSize="lg" label={t.fields.password} type="password" autoComplete="current-password" placeholder={t.placeholders.password} error={errors.password?.message} {...register('password')} />
       <ServerError error={login.error} />
-      <Button type="submit" size="lg" className="w-full" disabled={login.isPending}>
+      <Button type="submit" size="xl" className="w-full" disabled={login.isPending}>
         {login.isPending ? t.submit.loginPending : t.submit.login}
       </Button>
     </form>
@@ -83,12 +83,12 @@ function RegisterForm(): ReactNode {
     );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
-      <Input label={t.fields.email} type="email" autoComplete="email" placeholder={t.placeholders.email} error={errors.email?.message} {...register('email')} />
-      <Input label={t.fields.password} type="password" autoComplete="new-password" placeholder={t.placeholders.passwordNew} error={errors.password?.message} {...register('password')} />
-      <Input label={t.fields.confirm} type="password" autoComplete="new-password" placeholder={t.placeholders.password} error={errors.confirm?.message} {...register('confirm')} />
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3.5">
+      <Input inputSize="lg" label={t.fields.email} type="email" autoComplete="email" placeholder={t.placeholders.email} error={errors.email?.message} {...register('email')} />
+      <Input inputSize="lg" label={t.fields.password} type="password" autoComplete="new-password" placeholder={t.placeholders.passwordNew} error={errors.password?.message} {...register('password')} />
+      <Input inputSize="lg" label={t.fields.confirm} type="password" autoComplete="new-password" placeholder={t.placeholders.password} error={errors.confirm?.message} {...register('confirm')} />
       <ServerError error={registerMut.error} />
-      <Button type="submit" size="lg" className="w-full" disabled={registerMut.isPending}>
+      <Button type="submit" size="xl" className="w-full" disabled={registerMut.isPending}>
         {registerMut.isPending ? t.submit.registerPending : t.submit.register}
       </Button>
     </form>
@@ -102,17 +102,18 @@ export function AuthPage(): ReactNode {
 
   return (
     <div className="flex min-h-full items-center justify-center px-4 py-16">
-      <div className="w-full max-w-sm">
-        <div className="mb-4 flex justify-center">
-          <Link to="/">
-            <Logo size={20} />
+      <div className="w-full max-w-md">
+        <div className="mb-5 flex justify-center">
+          <Link to="/" title={texts.common.actions.home} aria-label={texts.common.actions.home}>
+            <Logo size={24} />
           </Link>
         </div>
-        <Card>
+        <Card className="p-6">
           <div className="mb-4">
             <Segmented<Mode>
               value={mode}
               onChange={setMode}
+              size="lg"
               options={[
                 { value: 'login', label: t.tabs.login },
                 { value: 'register', label: t.tabs.register },
