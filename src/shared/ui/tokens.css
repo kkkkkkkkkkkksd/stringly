@@ -1,0 +1,79 @@
+/* Дизайн-токены — направление A · Indigo & Slate (см. docs/14-design-system.md).
+   Компоненты используют ТОЛЬКО эти переменные, не сырые hex.
+   Тёмная тема — через [data-theme="dark"] на <html>. */
+:root {
+  /* surfaces */
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-hover: #f1f5f9;
+  /* borders */
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  /* text */
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #ffffff;
+  /* brand */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-fg: #ffffff;
+  --primary-tint: #eef2ff;
+  --ring: rgba(99, 102, 241, 0.35);
+  /* semantic */
+  --success: #16a34a;
+  --success-tint: #dcfce7;
+  --success-fg: #166534;
+  --warning: #d97706;
+  --warning-tint: #fef3c7;
+  --warning-fg: #92400e;
+  --danger: #dc2626;
+  --danger-tint: #fee2e2;
+  --danger-fg: #991b1b;
+  --info: #2563eb;
+  --info-tint: #dbeafe;
+  --info-fg: #1d4ed8;
+  /* table editing */
+  --cell-dirty-bg: #eef2ff;
+  --cell-dirty-border: #4f46e5;
+  /* spacing / radius / shadow */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-pop: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme='dark'] {
+  --bg-page: #020617;
+  --bg-surface: #0f172a;
+  --bg-subtle: #1e293b;
+  --bg-hover: #1e293b;
+  --border: #1e293b;
+  --border-strong: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-inverse: #0f172a;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-fg: #ffffff;
+  --primary-tint: #1e1b4b;
+  --ring: rgba(129, 140, 248, 0.4);
+  --success: #22c55e;
+  --success-tint: #052e16;
+  --success-fg: #86efac;
+  --warning: #f59e0b;
+  --warning-tint: #451a03;
+  --warning-fg: #fcd34d;
+  --danger: #ef4444;
+  --danger-tint: #450a0a;
+  --danger-fg: #fca5a5;
+  --info: #3b82f6;
+  --info-tint: #172554;
+  --info-fg: #93c5fd;
+  --cell-dirty-bg: #1e1b4b;
+  --cell-dirty-border: #6366f1;
+}

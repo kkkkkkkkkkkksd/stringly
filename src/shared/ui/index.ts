@@ -1,0 +1,11 @@
+// Баррель общих UI-компонентов. Импортируй из '@/shared/ui'.
+// Сюда добавляются новые переиспользуемые компоненты (Modal, Toast, Tabs…).
+export { Button } from './Button';
+export { buttonStyles } from './buttonStyles';
+export type { ButtonVariant, ButtonSize } from './buttonStyles';
+export { Badge } from './Badge';
+export type { BadgeTone } from './Badge';
+export { Logo } from './Logo';
+export { Input } from './Input';
+export { Card } from './Card';
+export { Segmented } from './Segmented';
