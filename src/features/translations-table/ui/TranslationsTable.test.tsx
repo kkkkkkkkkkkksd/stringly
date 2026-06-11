@@ -29,6 +29,8 @@ describe('TranslationsTable', () => {
       <TranslationsTable
         languages={languages}
         rows={rows}
+        isPlural={false}
+        editable
         hasNextPage={false}
         isFetchingNextPage={false}
         fetchNextPage={vi.fn()}

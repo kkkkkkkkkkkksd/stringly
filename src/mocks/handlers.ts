@@ -1,6 +1,6 @@
 import { http, HttpResponse, delay } from 'msw';
 import { env } from '@/shared/config/env';
-import { slugify } from '@/shared/core';
+import { slugify, pluralCategories } from '@/shared/core';
 
 // Мок-сеть вместо бэка (docs/07). In-memory: данные живут до перезагрузки страницы.
 // Реализует контракт: auth (бессрочный токен) + projects.
@@ -33,12 +33,15 @@ const userFromAuth = (request: Request): MockUser | null => {
 // проекта, созданного в онбординге (с произвольным id). Реализует контракт docs/07.
 type MockLang = { id: string; code: string; name: string; isBase: boolean; rtl: boolean };
 type MockNs = { id: string; name: string; type: 'strings' | 'plurals'; order: number };
-type MockKey = { id: string; code: string };
+type MockKey = { id: string; code: string; blank?: boolean };
+// Сохранённое значение ячейки (после PATCH): value для strings, plural-формы для plurals.
+type MockCellOverride = { value?: string; plural?: Record<string, string> };
 
 const i18n = {
   langs: new Map<string, MockLang[]>(), // pid -> языки
   ns: new Map<string, MockNs[]>(), // pid -> разделы
   keys: new Map<string, MockKey[]>(), // nsid -> ключи
+  values: new Map<string, Record<string, MockCellOverride>>(), // keyId -> { langCode -> override }
 };
 
 const SEED_LANGS: Omit<MockLang, 'id'>[] = [
@@ -220,19 +223,74 @@ export const handlers = [
 
     const langs = i18n.langs.get(pid) ?? [];
     const keys = i18n.keys.get(nsid) ?? [];
+    const isPlural = (i18n.ns.get(pid) ?? []).find((n) => n.id === nsid)?.type === 'plurals';
     const start = (page - 1) * pageSize;
     const slice = keys.slice(start, start + pageSize);
 
+    type OutCell = { value: string; status: string; plural?: Record<string, string> };
+
     const rows = slice.map((k, idx) => {
       const keyIndex = start + idx;
-      const values: Record<string, { value: string; status: string }> = {};
+      const overrides = i18n.values.get(k.id) ?? {};
+      const values: Record<string, OutCell> = {};
       langs.forEach((lang, langIndex) => {
-        const value = valueFor(lang, keyIndex, langIndex);
-        values[lang.code] = { value, status: value ? 'reviewed' : 'empty' };
+        const ov = overrides[lang.code];
+        if (ov) {
+          // сохранённое значение (после PATCH)
+          if (ov.plural) {
+            const v = ov.plural.other ?? ov.plural.one ?? '';
+            values[lang.code] = { value: v, status: v ? 'reviewed' : 'empty', plural: ov.plural };
+          } else {
+            const v = ov.value ?? '';
+            values[lang.code] = { value: v, status: v ? 'reviewed' : 'empty' };
+          }
+        } else if (k.blank) {
+          // новый ключ — пустой, заполняется пользователем
+          values[lang.code] = { value: '', status: 'empty' };
+        } else if (isPlural) {
+          if ((keyIndex + langIndex) % 5 === 0 && !lang.isBase) {
+            values[lang.code] = { value: '', status: 'empty' };
+          } else {
+            const forms: Record<string, string> = {};
+            const prefix = lang.isBase ? 'string' : `string(${lang.code})`;
+            pluralCategories(lang.code).forEach((c) => (forms[c] = `${prefix} [${c}]`));
+            values[lang.code] = { value: forms.other ?? '', status: 'reviewed', plural: forms };
+          }
+        } else {
+          const value = valueFor(lang, keyIndex, langIndex);
+          values[lang.code] = { value, status: value ? 'reviewed' : 'empty' };
+        }
       });
       return { keyId: k.id, code: k.code, values };
     });
 
     return HttpResponse.json({ rows, page, pageSize, total: keys.length });
+  }),
+
+  // Добавление ключа в раздел (новый ключ — пустой).
+  http.post(`${base}/projects/:pid/namespaces/:nsid/keys`, async ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const nsid = params.nsid as string;
+    seedI18n(pid);
+    const { code, comment } = (await request.json()) as { code: string; comment?: string };
+    const key: MockKey = { id: crypto.randomUUID(), code, blank: true };
+    (i18n.keys.get(nsid) ?? []).push(key);
+    return HttpResponse.json({ id: key.id, code: key.code, comment });
+  }),
+
+  // Батч-сохранение изменённых ячеек.
+  http.patch(`${base}/projects/:pid/translations`, async ({ request }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const { changes } = (await request.json()) as {
+      changes: { keyId: string; langCode: string; value?: string; plural?: Record<string, string> }[];
+    };
+    for (const c of changes) {
+      const cur = i18n.values.get(c.keyId) ?? {};
+      cur[c.langCode] = c.plural ? { plural: c.plural } : { value: c.value ?? '' };
+      i18n.values.set(c.keyId, cur);
+    }
+    await delay(120);
+    return HttpResponse.json({ updated: changes.length });
   }),
 ];

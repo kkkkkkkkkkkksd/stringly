@@ -13,6 +13,8 @@ export type CellStatus = z.infer<typeof cellStatusSchema>;
 export const cellSchema = z.object({
   value: z.string(),
   status: cellStatusSchema.default('empty'),
+  // для plural-разделов: формы CLDR (one/other/…). value = форма 'other' (для показа в гриде).
+  plural: z.record(z.string(), z.string()).optional(),
 });
 export type Cell = z.infer<typeof cellSchema>;
 

@@ -13,3 +13,4 @@ export { InitialAvatar } from './InitialAvatar';
 export { Modal } from './Modal';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
+export { Select } from './Select';

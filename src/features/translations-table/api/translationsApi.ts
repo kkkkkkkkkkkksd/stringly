@@ -1,9 +1,16 @@
+import { z } from 'zod';
 import { httpClient } from '@/shared/services/network';
 import { tablePageSchema } from '@/entities/translation';
 import type { RowsParams } from '../model/rowsParams';
+import type { CellChange } from '../model/changes';
+
+const keySchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  comment: z.string().optional(),
+});
 
 // Слой данных таблицы переводов (docs/07). Серверная пагинация: одна страница за запрос.
-// Мутации (addKey/patch/deleteKey) появятся на Шаге 4 — здесь только чтение.
 export const translationsApi = {
   getRows: async (pid: string, nsid: string, params: RowsParams & { page: number }) => {
     const qs = new URLSearchParams();
@@ -16,4 +23,12 @@ export const translationsApi = {
       await httpClient.get(`/projects/${pid}/namespaces/${nsid}/rows?${qs.toString()}`),
     );
   },
+  // Батч-сохранение изменённых ячеек одним запросом.
+  patch: async (pid: string, changes: CellChange[]) =>
+    z.object({ updated: z.number() }).parse(
+      await httpClient.patch(`/projects/${pid}/translations`, { changes }),
+    ),
+  // Добавление ключа в раздел.
+  addKey: async (pid: string, nsid: string, input: { code: string; comment?: string }) =>
+    keySchema.parse(await httpClient.post(`/projects/${pid}/namespaces/${nsid}/keys`, input)),
 };

@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import {
   getCoreRowModel,
   useReactTable,
@@ -10,6 +10,8 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import type { Language } from '@/entities/language';
 import type { TableRow } from '@/entities/translation';
 import { texts } from '@/shared/resources/i18n';
+import { StringCell } from './StringCell';
+import { PluralCell } from './PluralCell';
 
 const t = texts.app.table;
 
@@ -17,41 +19,29 @@ const ROW_HEIGHT = 40;
 const CODE_WIDTH = 220;
 const COMMENT_WIDTH = 240;
 const LANG_WIDTH = 200;
+// Постоянный отступ снизу: последние строки всегда можно прокрутить выше плавающей панели
+// сохранения (и просто комфортнее работать с низом таблицы).
+const BOTTOM_SPACE = 84;
 
-type ColMeta = { kind: 'code' | 'comment' | 'lang'; rtl?: boolean; langName?: string };
-
-// Ячейка языкового значения. МЕМОИЗИРОВАНА (React.memo) и зависит ТОЛЬКО от своих пропсов
-// (value/rtl) — без глобального состояния. Это задел под Шаг 4: точечные правки не должны
-// ре-рендерить соседние ячейки (docs/08). На Шаге 3 различаем лишь «пусто vs заполнено».
-const LangCell = memo(function LangCell({ value, rtl }: { value: string; rtl: boolean }): ReactNode {
-  const empty = value.trim() === '';
-  return (
-    <div
-      dir={rtl ? 'rtl' : undefined}
-      className={[
-        'flex h-full w-full items-center truncate px-3 text-sm transition-colors',
-        empty
-          ? 'bg-[var(--cell-empty)] text-faint group-hover:bg-[var(--cell-empty-hover)]'
-          : 'bg-surface text-ink group-hover:bg-[var(--row-hover)]',
-      ].join(' ')}
-    >
-      {empty ? t.emptyCell : value}
-    </div>
-  );
-});
+type ColMeta = { kind: 'code' | 'comment' | 'lang'; rtl?: boolean; langName?: string; code?: string };
 
 // Виртуализированная таблица переводов (TanStack Table + Virtual, docs/08).
-// Левые колонки code/comment закреплены (column pinning → sticky), языковые колонки —
-// из централизованного списка языков проекта. RTL-языки рендерят ячейку dir="rtl".
+// Закреплена (sticky) только колонка code; языковые колонки — из централизованного списка
+// языков проекта. RTL-языки рендерят ячейку dir="rtl". Ячейки редактируемы (Шаг 4):
+// strings — инлайн, plurals — поповер с формами CLDR.
 export function TranslationsTable({
   languages,
   rows,
+  isPlural,
+  editable,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
 }: {
   languages: Language[];
   rows: TableRow[];
+  isPlural: boolean;
+  editable: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
@@ -68,7 +58,7 @@ export function TranslationsTable({
           accessorFn: (r) => r.values[l.code]?.value ?? '',
           header: l.code,
           size: LANG_WIDTH,
-          meta: { kind: 'lang', rtl: l.rtl, langName: l.name } satisfies ColMeta,
+          meta: { kind: 'lang', rtl: l.rtl, langName: l.name, code: l.code } satisfies ColMeta,
         }),
       ),
     ],
@@ -164,8 +154,22 @@ export function TranslationsTable({
                         <span className="flex h-full w-full items-center truncate bg-surface px-3 text-sm text-muted transition-colors group-hover:bg-[var(--row-hover)]">
                           {value}
                         </span>
+                      ) : isPlural ? (
+                        <PluralCell
+                          keyId={cell.row.original.keyId}
+                          langCode={meta.code!}
+                          server={cell.row.original.values[meta.code!]}
+                          rtl={!!meta.rtl}
+                          editable={editable}
+                        />
                       ) : (
-                        <LangCell value={value} rtl={!!meta.rtl} />
+                        <StringCell
+                          keyId={cell.row.original.keyId}
+                          langCode={meta.code!}
+                          serverValue={value}
+                          rtl={!!meta.rtl}
+                          editable={editable}
+                        />
                       )}
                     </div>
                   );
@@ -180,6 +184,9 @@ export function TranslationsTable({
             {texts.common.state.loading}
           </div>
         ) : null}
+
+        {/* Постоянный отступ снизу: низ таблицы не перекрывается панелью сохранения. */}
+        <div style={{ height: BOTTOM_SPACE }} aria-hidden="true" />
       </div>
     </div>
   );

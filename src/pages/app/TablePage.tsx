@@ -3,12 +3,18 @@ import { Badge, Button, EmptyState, Skeleton } from '@/shared/ui';
 import { InboxIcon } from '@/shared/resources/assets';
 import { texts } from '@/shared/resources/i18n';
 import { useActiveProject } from '@/features/projects/model/activeProjectStore';
+import { usePermission } from '@/features/projects/model/access';
 import { useNamespaces } from '@/features/namespaces/model/useNamespaces';
 import { NamespaceTabs } from '@/features/namespaces/ui/NamespaceTabs';
 import { useLanguages } from '@/features/languages/model/useLanguages';
+import { AddLanguageModal } from '@/features/languages/ui/AddLanguageModal';
 import { TableToolbar } from '@/features/translations-table/ui/TableToolbar';
 import { TranslationsTable } from '@/features/translations-table/ui/TranslationsTable';
+import { AddKeyModal } from '@/features/translations-table/ui/AddKeyModal';
+import { SaveBar } from '@/features/translations-table/ui/SaveBar';
 import { useRows } from '@/features/translations-table/model/useRows';
+import { useEditsCount } from '@/features/translations-table/model/editsStore';
+import { useUnsavedGuard } from '@/features/translations-table/model/useUnsavedGuard';
 import { DEFAULT_PAGE_SIZE, type RowsParams } from '@/features/translations-table/model/rowsParams';
 
 const t = texts.app.table;
@@ -38,6 +44,14 @@ export function TablePage(): ReactNode {
   }, [namespaces, activeNsId]);
 
   const activeNs = namespaces.find((n) => n.id === activeNsId) ?? null;
+  const isPlural = activeNs?.type === 'plurals';
+
+  const editable = usePermission('table:write');
+  const [addKeyOpen, setAddKeyOpen] = useState(false);
+  const [addLangOpen, setAddLangOpen] = useState(false);
+
+  // Guard на уход со страницы при несохранённых правках.
+  useUnsavedGuard(useEditsCount() > 0);
 
   const languagesQuery = useLanguages(pid);
   const languages = useMemo(() => languagesQuery.data ?? [], [languagesQuery.data]);
@@ -88,6 +102,8 @@ export function TablePage(): ReactNode {
       <TranslationsTable
         languages={languages}
         rows={rows}
+        isPlural={isPlural}
+        editable={editable}
         hasNextPage={!!rowsQuery.hasNextPage}
         isFetchingNextPage={rowsQuery.isFetchingNextPage}
         fetchNextPage={rowsQuery.fetchNextPage}
@@ -111,9 +127,24 @@ export function TablePage(): ReactNode {
         onSelect={setActiveNsId}
       />
 
-      <TableToolbar />
+      <TableToolbar
+        onAddKey={() => setAddKeyOpen(true)}
+        onAddLanguage={() => setAddLangOpen(true)}
+      />
 
       {renderRegion()}
+
+      {activeNsId ? (
+        <AddKeyModal
+          pid={pid}
+          nsid={activeNsId}
+          open={addKeyOpen}
+          onClose={() => setAddKeyOpen(false)}
+        />
+      ) : null}
+      <AddLanguageModal pid={pid} open={addLangOpen} onClose={() => setAddLangOpen(false)} />
+
+      <SaveBar pid={pid} />
     </div>
   );
 }
