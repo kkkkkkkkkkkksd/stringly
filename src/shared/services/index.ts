@@ -2,3 +2,4 @@
 // Сейчас: network (HTTP-клиент). Сюда добавляются analytics, storage и т.п.
 export * from './network';
 export * from './theme';
+export * from './toast';

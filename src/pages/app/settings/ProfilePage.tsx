@@ -2,33 +2,13 @@ import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Card, Input, SoonCard } from '@/shared/ui';
+import { Button, Card, FormNote, Input, SoonCard } from '@/shared/ui';
 import { formatDate, passwordRules } from '@/shared/core';
 import { texts } from '@/shared/resources/i18n';
 import { useSession } from '@/features/auth/model/sessionStore';
 import { useUpdateEmail, useUpdatePassword } from '@/features/auth/model/useAuth';
 
 const t = texts.app.settings.profile;
-
-// Заметка под формой: ошибка сервера (danger) или успех (success).
-function Note({ error, success }: { error?: unknown; success?: string }): ReactNode {
-  if (error) {
-    const message = error instanceof Error ? error.message : texts.common.state.error;
-    return (
-      <p className="rounded-md bg-[color:var(--danger-tint)] px-3 py-2 text-xs text-[color:var(--danger-fg)]">
-        {message}
-      </p>
-    );
-  }
-  if (success) {
-    return (
-      <p className="rounded-md bg-[color:var(--success-tint)] px-3 py-2 text-xs text-[color:var(--success-fg)]">
-        {success}
-      </p>
-    );
-  }
-  return null;
-}
 
 // Смена email. Нельзя сохранить тот же адрес (refine с текущим email).
 function ChangeEmailForm({ currentEmail }: { currentEmail: string }): ReactNode {
@@ -61,7 +41,7 @@ function ChangeEmailForm({ currentEmail }: { currentEmail: string }): ReactNode 
           error={errors.email?.message}
           {...register('email')}
         />
-        <Note error={update.error} success={update.isSuccess ? te.success : undefined} />
+        <FormNote error={update.error} success={update.isSuccess ? te.success : undefined} />
         <div className="flex justify-end">
           <Button type="submit" disabled={update.isPending}>
             {update.isPending ? te.pending : te.submit}
@@ -129,7 +109,7 @@ function ChangePasswordForm(): ReactNode {
           error={errors.confirm?.message}
           {...register('confirm')}
         />
-        <Note error={update.error} success={update.isSuccess ? tp.success : undefined} />
+        <FormNote error={update.error} success={update.isSuccess ? tp.success : undefined} />
         <div className="flex justify-end">
           <Button type="submit" disabled={update.isPending}>
             {update.isPending ? tp.pending : tp.submit}

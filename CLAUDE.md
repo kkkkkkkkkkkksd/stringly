@@ -41,6 +41,8 @@ TanStack Table v8 + Virtual · Zustand · React Hook Form + Zod · Tailwind · M
 | `docs/12-build-prompts.md` | Пошаговые запросы к агенту (порядок сборки) |
 | `docs/13-design-and-ux.md` | Дизайн-first workflow, UX-принципы |
 | `docs/14-design-system.md` | **ЗАФИКСИРОВАНО:** палитра Indigo&Slate, Inter, токены (light/dark), компоненты |
+| `docs/15-copy-and-i18n.md` | Тексты UI и i18n-слой (где лежат строки, namespaces) |
+| `docs/16-feedback-and-errors.md` | **Конвенция фидбэка:** ошибки/успех — FormNote / тосты / EmptyState / ConfirmDialog / SoonCard / ErrorBoundary |
 
 ## Командный режим (короткие запросы)
 
@@ -103,6 +105,12 @@ TanStack Table v8 + Virtual · Zustand · React Hook Form + Zod · Tailwind · M
     и изображения — именованными компонентами с человекочитаемыми именами (`TableRowsIcon`,
     `BrandMarkIcon`…). Никаких «сырых» SVG-`path`-строк прямо в JSX. `resources` = `assets`
     (иконки/картинки) + `i18n` (тексты).
+13. **Фидбэк (ошибки/успех) — по единой конвенции `docs/16`.** Форма → инлайн `FormNote`
+    (+ `meta:{silentError:true}` на мутации); действие-кнопка → ошибка автоматически тостом,
+    успех `toast.success` только если изменение не видно; загрузка со своим `EmptyState` →
+    `meta:{silentError:true}` на запросе; опасное действие → `ConfirmDialog`; «скоро» →
+    `SoonCard`. Один исход — один канал, не дублируем (инлайн **или** тост). Не верстаем
+    цветные блоки вручную — только готовые компоненты на токенах.
 
 ## Дизайн-first (обязательно для UI)
 

@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient, type InfiniteData, type QueryKey } from '@tanstack/react-query';
 import type { TablePage, TableRow } from '@/entities/translation';
+import { toast } from '@/shared/services/toast';
+import { texts } from '@/shared/resources/i18n';
 import { translationsApi } from '../api/translationsApi';
 import type { CellChange } from './changes';
 import { useEdits } from './editsStore';
@@ -47,8 +49,12 @@ export function useSaveTranslations(pid: string) {
     },
     onError: (_e, _v, ctx) => {
       ctx?.prev?.forEach(([key, data]) => qc.setQueryData(key, data));
+      // Текст ошибки покажет глобальный обработчик (тост) — здесь только откат.
     },
-    onSuccess: () => reset(),
+    onSuccess: (_data, changes) => {
+      reset();
+      toast.success(texts.app.table.saveBar.saved(changes.length));
+    },
     onSettled: () => qc.invalidateQueries(scope),
   });
 }

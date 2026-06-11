@@ -37,6 +37,7 @@ export function useRenameProject(pid: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => projectsApi.rename(pid, name),
+    meta: { silentError: true }, // ошибку показываем инлайн (FormNote) на вкладке «Проект»
     onSuccess: (project) => {
       qc.setQueryData<Project[]>(qk.projects, (old) =>
         old ? old.map((p) => (p.id === project.id ? project : p)) : old,

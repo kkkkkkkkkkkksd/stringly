@@ -8,5 +8,6 @@ export function useMembers(pid: string) {
     queryKey: qk.members(pid),
     queryFn: () => membersApi.list(pid),
     enabled: !!pid,
+    meta: { silentError: true }, // ошибку показываем своим EmptyState на странице участников
   });
 }

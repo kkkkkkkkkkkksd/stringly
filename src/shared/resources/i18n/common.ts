@@ -14,6 +14,7 @@ export const common = {
     search: 'Поиск',
     back: '← На главную',
     home: 'На главную',
+    close: 'Закрыть',
   },
   state: {
     loading: 'Загрузка…',

@@ -8,6 +8,7 @@ export function useLogin() {
   const setSession = useSession((s) => s.setSession);
   return useMutation({
     mutationFn: authApi.login,
+    meta: { silentError: true }, // ошибку показываем инлайн в форме
     onSuccess: ({ user, accessToken }) => setSession(accessToken, user),
   });
 }
@@ -16,6 +17,7 @@ export function useRegister() {
   const setSession = useSession((s) => s.setSession);
   return useMutation({
     mutationFn: authApi.register,
+    meta: { silentError: true },
     onSuccess: ({ user, accessToken }) => setSession(accessToken, user),
   });
 }
@@ -40,6 +42,7 @@ export function useUpdateEmail() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: authApi.updateEmail,
+    meta: { silentError: true }, // ошибку показываем инлайн в форме профиля
     onSuccess: (user) => {
       setUser(user);
       qc.setQueryData(qk.me(), user);
@@ -49,5 +52,5 @@ export function useUpdateEmail() {
 
 // Смена пароля: токен бессрочный, повторный вход не требуется (refresh — позже).
 export function useUpdatePassword() {
-  return useMutation({ mutationFn: authApi.updatePassword });
+  return useMutation({ mutationFn: authApi.updatePassword, meta: { silentError: true } });
 }

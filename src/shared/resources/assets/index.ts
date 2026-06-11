@@ -18,4 +18,7 @@ export {
   SettingsIcon,
   EyeIcon,
   EyeOffIcon,
+  CheckIcon,
+  AlertIcon,
+  InfoIcon,
 } from './icons';

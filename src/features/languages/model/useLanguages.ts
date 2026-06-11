@@ -13,5 +13,6 @@ export function useLanguages(pid: string) {
     enabled: !!pid,
     staleTime: 5 * 60_000,
     select: (langs) => [...langs].sort((a, b) => Number(b.isBase) - Number(a.isBase)),
+    meta: { silentError: true }, // ошибку показываем своим EmptyState в настройках
   });
 }

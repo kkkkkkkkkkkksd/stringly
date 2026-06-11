@@ -124,6 +124,29 @@ export const ChevronDownIcon = (p: IconProps): ReactNode => (
   </Svg>
 );
 
+// Галочка (успех).
+export const CheckIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="m5 13 4 4L19 7" {...line} />
+  </Svg>
+);
+
+// Предупреждение (ошибка/опасность) — треугольник с «!».
+export const AlertIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M10.3 4.3 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" {...line} />
+    <path d="M12 9v4M12 17h.01" {...line} />
+  </Svg>
+);
+
+// Информация — «i» в круге.
+export const InfoIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <circle cx={12} cy={12} r={9} stroke="currentColor" strokeWidth={1.8} />
+    <path d="M12 11v5M12 8h.01" {...line} />
+  </Svg>
+);
+
 // Глаз (показать пароль).
 export const EyeIcon = (p: IconProps): ReactNode => (
   <Svg {...p}>

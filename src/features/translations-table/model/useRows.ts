@@ -16,5 +16,6 @@ export function useRows(pid: string, nsid: string | null, params: RowsParams) {
     enabled: !!pid && !!nsid,
     placeholderData: keepPreviousData, // плавное переключение разделов/страниц без мерцания
     staleTime: 30_000,
+    meta: { silentError: true }, // ошибку показываем своим EmptyState в таблице
   });
 }

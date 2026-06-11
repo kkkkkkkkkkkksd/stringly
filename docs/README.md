@@ -32,6 +32,7 @@
 | [13-design-and-ux.md](./13-design-and-ux.md) | Дизайн-first workflow, UX-принципы |
 | [14-design-system.md](./14-design-system.md) | **Зафиксированная** дизайн-система: палитра Indigo&Slate, Inter, токены light/dark, компоненты |
 | [15-copy-and-i18n.md](./15-copy-and-i18n.md) | Ресурсы: тексты UI (`resources/i18n`) и ассеты-иконки (`resources/assets`) + правила |
+| [16-feedback-and-errors.md](./16-feedback-and-errors.md) | Конвенция фидбэка: ошибки/успех — FormNote / тосты / EmptyState / ConfirmDialog / SoonCard / ErrorBoundary |
 
 ## Ключевые решения (TL;DR)
 

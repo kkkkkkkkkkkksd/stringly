@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Card, Input, SoonCard } from '@/shared/ui';
+import { Button, Card, FormNote, Input, SoonCard } from '@/shared/ui';
 import { texts } from '@/shared/resources/i18n';
 import { Can } from '@/features/projects/ui/Can';
 import { useCurrentProject, usePermission } from '@/features/projects/model/access';
@@ -32,12 +32,15 @@ export function ProjectPage(): ReactNode {
     formState: { errors, isDirty },
   } = useForm<Values>({ resolver: zodResolver(schema), values: { name: project?.name ?? '' } });
 
-  // Сбрасываем флаг успеха при правках (чтобы «успех» не висел после нового ввода).
+  // Успех и ошибки — инлайн под полем (как смена email/пароля в профиле), через FormNote.
+  // Имя проекта не обязано быть уникальным → проверки «уже существует» нет.
+  // Сбрасываем флаг успеха при новых правках, чтобы «успех» не висел во время ввода.
   useEffect(() => {
     if (isDirty && rename.isSuccess) rename.reset();
   }, [isDirty, rename]);
 
-  const onSubmit = (values: Values) => rename.mutate(values.name, { onSuccess: () => reset(values) });
+  const onSubmit = (values: Values) =>
+    rename.mutate(values.name, { onSuccess: () => reset(values) });
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -58,15 +61,7 @@ export function ProjectPage(): ReactNode {
             error={errors.name?.message}
             {...register('name')}
           />
-          {rename.error ? (
-            <p className="rounded-md bg-[color:var(--danger-tint)] px-3 py-2 text-xs text-[color:var(--danger-fg)]">
-              {rename.error instanceof Error ? rename.error.message : texts.common.state.error}
-            </p>
-          ) : rename.isSuccess ? (
-            <p className="rounded-md bg-[color:var(--success-tint)] px-3 py-2 text-xs text-[color:var(--success-fg)]">
-              {t.success}
-            </p>
-          ) : null}
+          <FormNote error={rename.error} success={rename.isSuccess ? t.success : undefined} />
           {canManage ? (
             <div className="flex justify-end">
               <Button type="submit" disabled={rename.isPending || !isDirty}>
