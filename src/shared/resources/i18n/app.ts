@@ -95,7 +95,25 @@ export const app = {
   },
   settings: {
     title: 'Настройки',
-    placeholder: 'Вкладки «Языки» и «Участники» появятся на Шаге 5.',
+    nav: {
+      languages: 'Языки',
+      members: 'Участники',
+      connections: 'Подключения',
+      profile: 'Профиль',
+      preferences: 'Предпочтения',
+    },
+    languages: { title: 'Языки', placeholder: 'Управление языками проекта появится на Шаге 5.' },
+    members: { title: 'Участники', placeholder: 'Участники и роли появятся на Шаге 5.' },
+    connections: { title: 'Подключения', placeholder: 'Выпуск API-токенов — реализуем позже.' },
+    profile: { title: 'Профиль', placeholder: 'Настройки аккаунта появятся позже.' },
+    preferences: {
+      title: 'Предпочтения',
+      themeLabel: 'Тема оформления',
+      themeHint: 'Светлая, тёмная или как в системе.',
+      light: 'Светлая',
+      dark: 'Тёмная',
+      system: 'Системная',
+    },
   },
   notFound: { title: '404', text: 'Страница не найдена.' },
 } as const;

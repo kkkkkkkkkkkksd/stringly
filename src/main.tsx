@@ -2,7 +2,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from '@/app/App';
 import { env } from '@/shared/config/env';
+import { initTheme } from '@/shared/services/theme';
 import './index.css';
+
+// Применяем сохранённую/системную тему до рендера (без мигания).
+initTheme();
 
 // Пока нет бэка — поднимаем MSW (мок-сеть) прямо в браузере.
 // При VITE_API_MODE=real моки не запускаются.
