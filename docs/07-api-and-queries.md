@@ -49,8 +49,10 @@ GET  /projects/:pid/namespaces/:nsid/rows
                                                        → TablePageDTO
 POST /projects/:pid/namespaces/:nsid/keys
        { code, comment? }                              → Key
+PATCH /projects/:pid/keys/:keyId
+       { code?, comment? }                             → Key            // переименование / комментарий
 PATCH /projects/:pid/translations            (батч)
-       { changes: [{ keyId, langCode, value }] }       → { updated: number }
+       { changes: [{ keyId, langCode, value? , plural? }] } → { updated: number }
 DELETE /projects/:pid/keys/:keyId                       → 204
 ```
 

@@ -12,6 +12,8 @@ import type { TableRow } from '@/entities/translation';
 import { texts } from '@/shared/resources/i18n';
 import { StringCell } from './StringCell';
 import { PluralCell } from './PluralCell';
+import { LangHeaderMenu } from './LangHeaderMenu';
+import type { EditingKey } from './KeyEditorPopover';
 
 const t = texts.app.table;
 
@@ -23,7 +25,14 @@ const LANG_WIDTH = 200;
 // сохранения (и просто комфортнее работать с низом таблицы).
 const BOTTOM_SPACE = 84;
 
-type ColMeta = { kind: 'code' | 'comment' | 'lang'; rtl?: boolean; langName?: string; code?: string };
+type ColMeta = {
+  kind: 'code' | 'comment' | 'lang';
+  rtl?: boolean;
+  langName?: string;
+  code?: string;
+  langId?: string;
+  isBase?: boolean;
+};
 
 // Виртуализированная таблица переводов (TanStack Table + Virtual, docs/08).
 // Закреплена (sticky) только колонка code; языковые колонки — из централизованного списка
@@ -34,6 +43,9 @@ export function TranslationsTable({
   rows,
   isPlural,
   editable,
+  canManageLang,
+  onEditKey,
+  onDeleteLanguage,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -42,6 +54,9 @@ export function TranslationsTable({
   rows: TableRow[];
   isPlural: boolean;
   editable: boolean;
+  canManageLang: boolean;
+  onEditKey: (info: EditingKey) => void;
+  onDeleteLanguage: (langId: string) => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
@@ -58,7 +73,14 @@ export function TranslationsTable({
           accessorFn: (r) => r.values[l.code]?.value ?? '',
           header: l.code,
           size: LANG_WIDTH,
-          meta: { kind: 'lang', rtl: l.rtl, langName: l.name, code: l.code } satisfies ColMeta,
+          meta: {
+            kind: 'lang',
+            rtl: l.rtl,
+            langName: l.name,
+            code: l.code,
+            langId: l.id,
+            isBase: l.isBase,
+          } satisfies ColMeta,
         }),
       ),
     ],
@@ -75,6 +97,10 @@ export function TranslationsTable({
 
   const tableRows = table.getRowModel().rows;
   const totalWidth = table.getTotalSize();
+
+  // Открыть поповер-редактор ключа (клик по ячейке code/comment), якорь — rect ячейки.
+  const emitEdit = (r: TableRow, el: HTMLElement) =>
+    onEditKey({ keyId: r.keyId, code: r.code, comment: r.comment ?? '', anchor: el.getBoundingClientRect() });
 
   const rowVirtualizer = useVirtualizer({
     count: tableRows.length,
@@ -117,11 +143,25 @@ export function TranslationsTable({
               <div
                 key={header.id}
                 style={{ ...pinnedStyle(header), height: ROW_HEIGHT, zIndex: pinned ? 30 : 20 }}
-                className="flex shrink-0 items-center border-b border-r border-[var(--border)] bg-subtle px-3 text-xs font-medium text-muted"
+                className="flex shrink-0 items-center gap-1 border-b border-r border-[var(--border)] bg-subtle px-3 text-xs font-medium text-muted"
                 title={meta.kind === 'lang' ? meta.langName : undefined}
               >
-                {String(header.column.columnDef.header)}
-                {meta.rtl ? <span className="ml-1 text-faint">‏→</span> : null}
+                {meta.kind === 'lang' ? (
+                  <>
+                    <span>{meta.code}</span>
+                    {meta.isBase ? (
+                      <span className="rounded-full bg-primary px-2 py-0.5 text-[9px] font-medium text-white">
+                        {t.baseBadge}
+                      </span>
+                    ) : null}
+                    {meta.rtl ? <span className="text-faint">‏→</span> : null}
+                    {canManageLang && !meta.isBase ? (
+                      <LangHeaderMenu code={meta.code!} onDelete={() => onDeleteLanguage(meta.langId!)} />
+                    ) : null}
+                  </>
+                ) : (
+                  String(header.column.columnDef.header)
+                )}
               </div>
             );
           })}
@@ -147,12 +187,26 @@ export function TranslationsTable({
                       className="flex shrink-0 items-stretch overflow-hidden border-b border-r border-[var(--border)]"
                     >
                       {meta.kind === 'code' ? (
-                        <span className="flex h-full w-full items-center truncate bg-surface px-3 font-mono text-[12.5px] text-[color:var(--primary-hover)] transition-colors group-hover:bg-[var(--row-hover)]">
+                        <span
+                          onClick={editable ? (e) => emitEdit(cell.row.original, e.currentTarget) : undefined}
+                          title={editable ? cell.row.original.code : undefined}
+                          className={[
+                            'flex h-full w-full items-center truncate bg-surface px-3 font-mono text-[12.5px] text-[color:var(--primary-hover)] transition-colors group-hover:bg-[var(--row-hover)]',
+                            editable ? 'cursor-pointer hover:underline' : '',
+                          ].join(' ')}
+                        >
                           {value}
                         </span>
                       ) : meta.kind === 'comment' ? (
-                        <span className="flex h-full w-full items-center truncate bg-surface px-3 text-sm text-muted transition-colors group-hover:bg-[var(--row-hover)]">
-                          {value}
+                        <span
+                          onClick={editable ? (e) => emitEdit(cell.row.original, e.currentTarget) : undefined}
+                          className={[
+                            'flex h-full w-full items-center truncate bg-surface px-3 text-sm transition-colors group-hover:bg-[var(--row-hover)]',
+                            value ? 'text-muted' : 'text-faint',
+                            editable ? 'cursor-pointer' : '',
+                          ].join(' ')}
+                        >
+                          {value || t.emptyCell}
                         </span>
                       ) : isPlural ? (
                         <PluralCell

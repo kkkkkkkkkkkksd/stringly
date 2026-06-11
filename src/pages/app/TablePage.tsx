@@ -7,10 +7,12 @@ import { usePermission } from '@/features/projects/model/access';
 import { useNamespaces } from '@/features/namespaces/model/useNamespaces';
 import { NamespaceTabs } from '@/features/namespaces/ui/NamespaceTabs';
 import { useLanguages } from '@/features/languages/model/useLanguages';
+import { useDeleteLanguage } from '@/features/languages/model/useDeleteLanguage';
 import { AddLanguageModal } from '@/features/languages/ui/AddLanguageModal';
 import { TableToolbar } from '@/features/translations-table/ui/TableToolbar';
 import { TranslationsTable } from '@/features/translations-table/ui/TranslationsTable';
 import { AddKeyModal } from '@/features/translations-table/ui/AddKeyModal';
+import { KeyEditorPopover, type EditingKey } from '@/features/translations-table/ui/KeyEditorPopover';
 import { SaveBar } from '@/features/translations-table/ui/SaveBar';
 import { useRows } from '@/features/translations-table/model/useRows';
 import { useEditsCount } from '@/features/translations-table/model/editsStore';
@@ -47,8 +49,11 @@ export function TablePage(): ReactNode {
   const isPlural = activeNs?.type === 'plurals';
 
   const editable = usePermission('table:write');
+  const canManageLang = usePermission('lang:manage');
+  const deleteLanguage = useDeleteLanguage(pid);
   const [addKeyOpen, setAddKeyOpen] = useState(false);
   const [addLangOpen, setAddLangOpen] = useState(false);
+  const [editingKey, setEditingKey] = useState<EditingKey | null>(null);
 
   // Guard на уход со страницы при несохранённых правках.
   useUnsavedGuard(useEditsCount() > 0);
@@ -104,6 +109,9 @@ export function TablePage(): ReactNode {
         rows={rows}
         isPlural={isPlural}
         editable={editable}
+        canManageLang={canManageLang}
+        onEditKey={setEditingKey}
+        onDeleteLanguage={(lid) => deleteLanguage.mutate(lid)}
         hasNextPage={!!rowsQuery.hasNextPage}
         isFetchingNextPage={rowsQuery.isFetchingNextPage}
         fetchNextPage={rowsQuery.fetchNextPage}
@@ -143,6 +151,15 @@ export function TablePage(): ReactNode {
         />
       ) : null}
       <AddLanguageModal pid={pid} open={addLangOpen} onClose={() => setAddLangOpen(false)} />
+
+      {editingKey && activeNsId ? (
+        <KeyEditorPopover
+          pid={pid}
+          nsid={activeNsId}
+          editing={editingKey}
+          onClose={() => setEditingKey(null)}
+        />
+      ) : null}
 
       <SaveBar pid={pid} />
     </div>

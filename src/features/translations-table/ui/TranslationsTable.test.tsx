@@ -31,6 +31,9 @@ describe('TranslationsTable', () => {
         rows={rows}
         isPlural={false}
         editable
+        canManageLang
+        onEditKey={vi.fn()}
+        onDeleteLanguage={vi.fn()}
         hasNextPage={false}
         isFetchingNextPage={false}
         fetchNextPage={vi.fn()}

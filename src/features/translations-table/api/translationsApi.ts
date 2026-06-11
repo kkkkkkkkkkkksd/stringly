@@ -31,4 +31,10 @@ export const translationsApi = {
   // Добавление ключа в раздел.
   addKey: async (pid: string, nsid: string, input: { code: string; comment?: string }) =>
     keySchema.parse(await httpClient.post(`/projects/${pid}/namespaces/${nsid}/keys`, input)),
+  // Переименование ключа / изменение комментария.
+  updateKey: async (pid: string, keyId: string, input: { code?: string; comment?: string }) =>
+    keySchema.parse(await httpClient.patch(`/projects/${pid}/keys/${keyId}`, input)),
+  // Полное удаление ключа.
+  deleteKey: async (pid: string, keyId: string) =>
+    httpClient.delete<void>(`/projects/${pid}/keys/${keyId}`),
 };

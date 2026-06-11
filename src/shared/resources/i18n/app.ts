@@ -6,6 +6,15 @@ export const app = {
     title: 'Таблица переводов',
     columns: { code: 'Ключ', comment: 'Комментарий' },
     typeBadge: { strings: 'Строки', plurals: 'Plurals' },
+    baseBadge: 'база',
+    langMenu: {
+      trigger: 'Действия с языком',
+      delete: 'Удалить язык',
+      confirm: (code: string) =>
+        `Удалить язык «${code}»? Все переводы на этом языке будут потеряны.`,
+      confirmBtn: 'Удалить',
+      cancel: 'Отмена',
+    },
     emptyCell: '—',
     keysCount: (n: number) => `Ключей: ${n}`,
     toolbar: {
@@ -68,6 +77,20 @@ export const app = {
       label: 'Язык (ISO-локаль)',
       submit: 'Добавить язык',
       close: 'Закрыть',
+    },
+    keyEditor: {
+      title: 'Ключ',
+      codeLabel: 'Ключ',
+      codePlaceholder: 'например, button_submit',
+      commentLabel: 'Комментарий',
+      commentPlaceholder: 'подсказка переводчику',
+      save: 'Сохранить',
+      delete: 'Удалить',
+      deleteConfirm: 'Удалить ключ целиком? Это нельзя отменить.',
+      confirm: 'Удалить',
+      cancel: 'Отмена',
+      close: 'Закрыть',
+      codeRequired: 'Введите ключ',
     },
   },
   settings: {

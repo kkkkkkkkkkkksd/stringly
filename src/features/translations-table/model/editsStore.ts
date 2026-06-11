@@ -11,6 +11,7 @@ type EditsState = {
   edits: Record<string, EditValue>;
   setEdit: (cellKey: string, value: EditValue) => void;
   removeEdit: (cellKey: string) => void;
+  removeKeyEdits: (keyId: string) => void;
   reset: () => void;
 };
 
@@ -28,6 +29,15 @@ export const useEdits = create<EditsState>((set) => ({
       if (!(cellKey in s.edits)) return s;
       const next = { ...s.edits };
       delete next[cellKey];
+      return { edits: next };
+    }),
+  // Убрать все правки ключа (например, при его удалении), чтобы не остались «висячие».
+  removeKeyEdits: (keyId) =>
+    set((s) => {
+      const prefix = `${keyId}:`;
+      const next = Object.fromEntries(
+        Object.entries(s.edits).filter(([k]) => !k.startsWith(prefix)),
+      );
       return { edits: next };
     }),
   reset: () => set({ edits: {} }),

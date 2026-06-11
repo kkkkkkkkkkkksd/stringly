@@ -100,3 +100,19 @@ export const CloseIcon = (p: IconProps): ReactNode => (
     <path d="M6 6l12 12M18 6 6 18" {...line} />
   </Svg>
 );
+
+// Удалить (корзина).
+export const TrashIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6" {...line} />
+  </Svg>
+);
+
+// Меню действий (три точки по вертикали).
+export const DotsVerticalIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <circle cx={12} cy={5} r={1.6} fill="currentColor" />
+    <circle cx={12} cy={12} r={1.6} fill="currentColor" />
+    <circle cx={12} cy={19} r={1.6} fill="currentColor" />
+  </Svg>
+);

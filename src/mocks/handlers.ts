@@ -33,7 +33,7 @@ const userFromAuth = (request: Request): MockUser | null => {
 // проекта, созданного в онбординге (с произвольным id). Реализует контракт docs/07.
 type MockLang = { id: string; code: string; name: string; isBase: boolean; rtl: boolean };
 type MockNs = { id: string; name: string; type: 'strings' | 'plurals'; order: number };
-type MockKey = { id: string; code: string; blank?: boolean };
+type MockKey = { id: string; code: string; comment?: string; blank?: boolean };
 // Сохранённое значение ячейки (после PATCH): value для strings, plural-формы для plurals.
 type MockCellOverride = { value?: string; plural?: Record<string, string> };
 
@@ -189,6 +189,20 @@ export const handlers = [
     return HttpResponse.json(lang);
   }),
 
+  http.delete(`${base}/projects/:pid/languages/:lid`, ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const lid = params.lid as string;
+    seedI18n(pid);
+    const list = i18n.langs.get(pid) ?? [];
+    const lang = list.find((l) => l.id === lid);
+    if (lang?.isBase) {
+      return HttpResponse.json({ message: 'Нельзя удалить базовый язык' }, { status: 409 });
+    }
+    i18n.langs.set(pid, list.filter((l) => l.id !== lid));
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // ─── Разделы (namespaces) ───────────────────────────────────────────────────────────
   http.get(`${base}/projects/:pid/namespaces`, ({ request, params }) => {
     if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
@@ -261,7 +275,7 @@ export const handlers = [
           values[lang.code] = { value, status: value ? 'reviewed' : 'empty' };
         }
       });
-      return { keyId: k.id, code: k.code, values };
+      return { keyId: k.id, code: k.code, comment: k.comment, values };
     });
 
     return HttpResponse.json({ rows, page, pageSize, total: keys.length });
@@ -274,9 +288,40 @@ export const handlers = [
     const nsid = params.nsid as string;
     seedI18n(pid);
     const { code, comment } = (await request.json()) as { code: string; comment?: string };
-    const key: MockKey = { id: crypto.randomUUID(), code, blank: true };
+    const key: MockKey = { id: crypto.randomUUID(), code, comment, blank: true };
     (i18n.keys.get(nsid) ?? []).push(key);
-    return HttpResponse.json({ id: key.id, code: key.code, comment });
+    return HttpResponse.json({ id: key.id, code: key.code, comment: key.comment });
+  }),
+
+  // Переименование ключа / изменение комментария.
+  http.patch(`${base}/projects/:pid/keys/:keyId`, async ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const keyId = params.keyId as string;
+    const { code, comment } = (await request.json()) as { code?: string; comment?: string };
+    for (const arr of i18n.keys.values()) {
+      const k = arr.find((x) => x.id === keyId);
+      if (k) {
+        if (code !== undefined) k.code = code;
+        if (comment !== undefined) k.comment = comment || undefined;
+        return HttpResponse.json({ id: k.id, code: k.code, comment: k.comment });
+      }
+    }
+    return HttpResponse.json({ message: 'Ключ не найден' }, { status: 404 });
+  }),
+
+  // Полное удаление ключа.
+  http.delete(`${base}/projects/:pid/keys/:keyId`, ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const keyId = params.keyId as string;
+    for (const arr of i18n.keys.values()) {
+      const idx = arr.findIndex((x) => x.id === keyId);
+      if (idx >= 0) {
+        arr.splice(idx, 1);
+        i18n.values.delete(keyId);
+        break;
+      }
+    }
+    return new HttpResponse(null, { status: 204 });
   }),
 
   // Батч-сохранение изменённых ячеек.

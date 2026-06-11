@@ -12,4 +12,6 @@ export {
   KeyIcon,
   InboxIcon,
   CloseIcon,
+  TrashIcon,
+  DotsVerticalIcon,
 } from './icons';

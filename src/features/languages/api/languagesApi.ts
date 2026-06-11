@@ -10,4 +10,6 @@ export const languagesApi = {
   // централизованный список — добавленный язык становится колонкой во всех разделах.
   add: async (pid: string, code: string) =>
     languageSchema.parse(await httpClient.post(`/projects/${pid}/languages`, { code })),
+  remove: async (pid: string, lid: string) =>
+    httpClient.delete<void>(`/projects/${pid}/languages/${lid}`),
 };
