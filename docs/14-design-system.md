@@ -86,6 +86,10 @@
   /* table editing */
   --cell-dirty-bg:     #EEF2FF;
   --cell-dirty-border: #4F46E5;
+  /* hover строки (индиго, бренд) и пустая ячейка — разные цвета, чтобы не сливались */
+  --row-hover:         #EEF2FF;
+  --cell-empty:        #F1F5F9;
+  --cell-empty-hover:  #E2E8F0;
 }
 
 [data-theme="dark"] {
@@ -110,6 +114,9 @@
   --info:    #3B82F6; --info-tint:    #172554; --info-fg:    #93C5FD;
   --cell-dirty-bg:     #1E1B4B;
   --cell-dirty-border: #6366F1;
+  --row-hover:         #1E1B4B;
+  --cell-empty:        #1E293B;
+  --cell-empty-hover:  #334155;
 }
 ```
 
@@ -194,10 +201,14 @@
 **Sidebar** — ширина 240px, bg `--bg-surface`, border-right. Активный пункт: bg `--primary-tint`, текст `--primary-hover`, вес 500.
 
 **Table** (см. также `08-table-design`):
-- высота строки 40px, заголовок sticky, первые колонки (`code`, `comment`) sticky.
-- hover строки: bg `--bg-hover`. Граница ячеек: `--border`.
-- dirty-ячейка: bg `--cell-dirty-bg`, `box-shadow: inset 0 0 0 1.5px var(--cell-dirty-border)`.
-- статус — пилюля из §1.
+- высота строки 40px, заголовок sticky. Закреплена (sticky) **только** колонка `code`;
+  `comment` прокручивается вместе с языками.
+- hover строки: bg `--row-hover` (лёгкий индиго). Граница ячеек: `--border`.
+- пустая ячейка (нет перевода): bg `--cell-empty` + плейсхолдер «—» (`--text-tertiary`);
+  на hover — `--cell-empty-hover` (на тон темнее), чтобы пустые не сливались с hover-строкой.
+  Статусы ревью (draft/reviewed) отложены — на Шагах 3–4 различаем только «пусто vs заполнено».
+- тип раздела (strings/plurals) — бейдж `tone="primary"` рядом с заголовком экрана.
+- dirty-ячейка (Шаг 4): bg `--cell-dirty-bg`, `box-shadow: inset 0 0 0 1.5px var(--cell-dirty-border)`.
 
 Иконки: один набор (Tabler / Lucide), размеры 16–20px, цвет наследуется.
 

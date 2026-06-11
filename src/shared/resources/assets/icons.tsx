@@ -47,3 +47,56 @@ export const LanguageIcon = (p: IconProps): ReactNode => (
     <path d="M5 8h14M9 4v4m1.5 0c0 5-3 9-6 11M8 14c2 2 5 3 8 3M14 20l3.5-8 3.5 8m-6-2h5" {...line} />
   </Svg>
 );
+
+// Плюс (добавить).
+export const PlusIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M12 5v14M5 12h14" {...line} />
+  </Svg>
+);
+
+// Поиск.
+export const SearchIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <circle cx={11} cy={11} r={7} stroke="currentColor" strokeWidth={1.8} />
+    <path d="m20 20-3.5-3.5" {...line} />
+  </Svg>
+);
+
+// Фильтр.
+export const FilterIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M4 5h16l-6 8v5l-4 2v-7L4 5Z" {...line} />
+  </Svg>
+);
+
+// Сохранить (дискета).
+export const SaveIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M5 4h11l3 3v13H5V4Z" {...line} />
+    <path d="M8 4v5h7M8 14h8v6H8z" {...line} />
+  </Svg>
+);
+
+// Ключ.
+export const KeyIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <circle cx={8} cy={15} r={4} stroke="currentColor" strokeWidth={1.8} />
+    <path d="m11 12 9-9m-3 0 3 3m-6 0 2 2" {...line} />
+  </Svg>
+);
+
+// Пустое состояние (входящие / стопка).
+export const InboxIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M4 13 6 5h12l2 8v6H4v-6Z" {...line} />
+    <path d="M4 13h5l1 2h4l1-2h5" {...line} />
+  </Svg>
+);
+
+// Закрыть.
+export const CloseIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M6 6l12 12M18 6 6 18" {...line} />
+  </Svg>
+);

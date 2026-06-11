@@ -37,6 +37,10 @@
   /* table editing */
   --cell-dirty-bg: #eef2ff;
   --cell-dirty-border: #4f46e5;
+  /* table row hover (индиго, бренд) и пустая ячейка — разные цвета, чтобы не сливались */
+  --row-hover: #eef2ff;
+  --cell-empty: #f1f5f9;
+  --cell-empty-hover: #e2e8f0;
   /* spacing / radius / shadow */
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -76,4 +80,7 @@
   --info-fg: #93c5fd;
   --cell-dirty-bg: #1e1b4b;
   --cell-dirty-border: #6366f1;
+  --row-hover: #1e1b4b;
+  --cell-empty: #1e293b;
+  --cell-empty-hover: #334155;
 }

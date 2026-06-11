@@ -24,7 +24,7 @@ export function AppLayout(): ReactNode {
   const logout = useLogout();
 
   return (
-    <div className="grid min-h-full grid-cols-[240px_1fr]">
+    <div className="grid h-full grid-cols-[240px_1fr]">
       <aside className="flex flex-col border-r border-[var(--border)] bg-surface p-3">
         <div className="mb-4 px-1">
           <Logo />
@@ -56,7 +56,7 @@ export function AppLayout(): ReactNode {
           </button>
         </div>
       </aside>
-      <main className="p-6">
+      <main className="min-h-0 overflow-hidden p-6">
         <Outlet />
       </main>
     </div>
