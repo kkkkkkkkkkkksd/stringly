@@ -9,7 +9,9 @@ import { useCreateNamespace } from '../model/useNamespaces';
 
 const t = texts.app.table.createNamespace;
 
-const schema = z.object({ name: z.string().trim().min(1, t.nameRequired) });
+const schema = z.object({
+  name: z.string().trim().min(1, t.nameRequired).max(20, t.nameTooLong),
+});
 type FormValues = z.infer<typeof schema>;
 
 // Создание раздела: название + выбор типа (strings | plurals). Тип влияет на вид ячейки
@@ -59,6 +61,7 @@ export function CreateNamespaceModal({
         <Input
           label={t.nameLabel}
           placeholder={t.namePlaceholder}
+          maxLength={20}
           autoFocus
           error={errors.name?.message}
           {...register('name')}

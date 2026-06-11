@@ -40,6 +40,7 @@ export const app = {
       submit: 'Создать раздел',
       close: 'Закрыть',
       nameRequired: 'Введите название раздела',
+      nameTooLong: 'Не больше 20 символов',
     },
     states: {
       loading: 'Загрузка строк…',

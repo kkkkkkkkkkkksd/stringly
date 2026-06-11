@@ -12,7 +12,9 @@ import { useSession } from '@/features/auth/model/sessionStore';
 // Онбординг: у аккаунта нет проектов — просим создать первый. docs/03, экран 3.5.
 // «Пропустить» создаёт проект с дефолтным именем (переименование — позже в настройках).
 const t = texts.onboarding;
-const schema = z.object({ name: z.string().min(1, t.nameRequired) });
+const schema = z.object({
+  name: z.string().trim().min(1, t.nameRequired).max(25, t.nameTooLong),
+});
 type Values = z.infer<typeof schema>;
 
 export function OnboardingPage(): ReactNode {
@@ -40,7 +42,7 @@ export function OnboardingPage(): ReactNode {
           <h1 className="text-2xl font-semibold text-ink">{t.title}</h1>
           <p className="mt-1.5 text-sm text-muted">{t.subtitle}</p>
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-5 space-y-3.5">
-            <Input inputSize="lg" label={t.field} placeholder={t.placeholder} error={errors.name?.message} {...register('name')} />
+            <Input inputSize="lg" label={t.field} placeholder={t.placeholder} maxLength={25} error={errors.name?.message} {...register('name')} />
             <Button type="submit" size="xl" className="w-full" disabled={create.isPending}>
               {create.isPending ? t.submitPending : t.submit}
             </Button>

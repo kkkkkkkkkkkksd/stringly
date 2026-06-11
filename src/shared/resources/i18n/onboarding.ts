@@ -8,6 +8,7 @@ export const onboarding = {
   submit: 'Создать проект',
   submitPending: 'Создаём…',
   nameRequired: 'Введите название проекта',
+  nameTooLong: 'Не больше 25 символов',
   skip: 'Пропустить',
   defaultName: 'Мой проект',
   signedInAs: 'Вы вошли как',

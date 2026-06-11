@@ -15,8 +15,10 @@ export function ProjectSwitcher(): ReactNode {
       className="mb-4 flex w-full items-center gap-2 rounded-md border border-[var(--border)] px-2.5 py-2 text-left text-sm text-ink disabled:cursor-default"
     >
       <InitialAvatar name={project?.name ?? '?'} />
-      <span className="truncate font-medium">{project?.name ?? '—'}</span>
-      <span className="ml-auto shrink-0 text-xs text-faint">{texts.app.projectSwitcher.soon}</span>
+      <span className="min-w-0 break-words font-medium">{project?.name ?? '—'}</span>
+      <span className="ml-auto shrink-0 self-center text-xs text-faint">
+        {texts.app.projectSwitcher.soon}
+      </span>
     </button>
   );
 }
