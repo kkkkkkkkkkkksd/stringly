@@ -1,13 +1,9 @@
 import { z } from 'zod';
+import { userSchema } from '@/entities/user';
 
-// Zod-схемы на границе API (типы = z.infer). Сессия — один бессрочный токен (docs/07).
-export const userSchema = z.object({
-  id: z.string(),
-  email: z.string().email(),
-  name: z.string().optional(),
-  createdAt: z.string(),
-});
-export type User = z.infer<typeof userSchema>;
+// Транспортные DTO авторизации (границы API фичи). Доменный User — из entities.
+export { userSchema };
+export type { User } from '@/entities/user';
 
 export const authResponseSchema = z.object({
   user: userSchema,

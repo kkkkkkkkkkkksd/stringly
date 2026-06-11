@@ -1,7 +1,7 @@
 import { can, type Permission, type Role } from '@/shared/core';
 import { useProjects } from './useProjects';
 import { useActiveProject } from './activeProjectStore';
-import type { Project } from '../api/schemas';
+import type { Project } from '@/entities/project';
 
 // Текущий активный проект (объект) — из списка проектов по activeProjectId.
 export function useCurrentProject(): Project | null {

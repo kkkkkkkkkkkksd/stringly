@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { qk } from '@/shared/api/queryKeys';
 import { projectsApi } from '../api/projectsApi';
-import type { Project } from '../api/schemas';
+import type { Project } from '@/entities/project';
 import { useActiveProject } from './activeProjectStore';
 
 export function useProjects() {

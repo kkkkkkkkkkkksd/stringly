@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { setAuthToken } from '@/shared/services/network';
-import type { User } from '../api/schemas';
+import type { User } from '@/entities/user';
 
 // Сессия: бессрочный access-токен + пользователь. Персистится в localStorage.
 // При смене токена синхронизируем HTTP-клиент (setAuthToken).

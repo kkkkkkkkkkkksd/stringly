@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { httpClient } from '@/shared/services/network';
-import { projectSchema } from './schemas';
+import { projectSchema } from '@/entities/project';
 
 export const projectsApi = {
   list: async () => z.array(projectSchema).parse(await httpClient.get('/projects')),
