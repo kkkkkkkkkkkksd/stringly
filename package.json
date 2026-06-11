@@ -4,8 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode local-mock",
+    "start:local-real": "tsc --noEmit && vite build --mode local-real && vite preview",
     "build": "tsc --noEmit && vite build",
+    "build:local-real": "tsc --noEmit && vite build --mode local-real",
+    "build:demo-mock": "tsc --noEmit && vite build --mode demo-mock",
+    "build:demo-real": "tsc --noEmit && vite build --mode demo-real",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",

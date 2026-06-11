@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const userSchema = z.object({
   id: z.string(),
   email: z.string().email(),
-  name: z.string().optional(),
+  // У аккаунта нет имени — идентификация по email (имя есть только у проекта).
   createdAt: z.string(),
 });
 export type User = z.infer<typeof userSchema>;

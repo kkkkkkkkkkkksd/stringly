@@ -3,8 +3,19 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
-// Локальная разработка: dev-сервер на http://localhost:5173.
-// Реальный домен/хост не нужен до финального этапа (см. docs/04, docs/10).
+// Куда проксировать /api/v1 в real-режиме при локальном запуске (конфигурация 2).
+// По умолчанию — локальный бэк на :8080; переопределяется переменной BACKEND_ORIGIN.
+// В mock-режиме прокси не задействуется: MSW перехватывает запросы в браузере.
+// На сервере (конфигурации 3–4) проксирует nginx, а не Vite.
+const backendOrigin = process.env.BACKEND_ORIGIN ?? 'http://localhost:8080';
+
+const apiProxy = {
+  '/api/v1': {
+    target: backendOrigin,
+    changeOrigin: true,
+  },
+};
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -13,6 +24,11 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true, // автоматически открыть сайт в браузере
+    proxy: apiProxy,
+  },
+  preview: {
+    port: 4173,
+    proxy: apiProxy,
   },
   test: {
     environment: 'jsdom',

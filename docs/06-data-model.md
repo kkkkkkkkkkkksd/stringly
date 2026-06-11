@@ -34,7 +34,7 @@ type ID = string; // UUID
 interface User {
   id: ID;
   email: string;
-  name?: string;
+  // У аккаунта нет имени — пользователь идентифицируется по email. Имя есть у проекта.
   createdAt: string; // ISO
 }
 
