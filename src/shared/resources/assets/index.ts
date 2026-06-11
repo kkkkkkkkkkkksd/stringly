@@ -14,4 +14,8 @@ export {
   CloseIcon,
   TrashIcon,
   DotsVerticalIcon,
+  ChevronDownIcon,
+  SettingsIcon,
+  EyeIcon,
+  EyeOffIcon,
 } from './icons';

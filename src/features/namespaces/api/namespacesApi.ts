@@ -8,4 +8,7 @@ export const namespacesApi = {
     z.array(namespaceSchema).parse(await httpClient.get(`/projects/${pid}/namespaces`)),
   create: async (pid: string, input: { name: string; type: NamespaceType }) =>
     namespaceSchema.parse(await httpClient.post(`/projects/${pid}/namespaces`, input)),
+  // Удаление раздела целиком: вместе с ним удаляются его ключи и переводы (docs/06).
+  remove: async (pid: string, nsid: string) =>
+    httpClient.delete<void>(`/projects/${pid}/namespaces/${nsid}`),
 };

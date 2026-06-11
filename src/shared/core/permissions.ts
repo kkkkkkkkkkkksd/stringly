@@ -7,6 +7,7 @@ export type Permission =
   | 'table:write'
   | 'keys:add'
   | 'lang:manage'
+  | 'ns:manage'
   | 'members:manage'
   | 'tokens:manage'
   | 'project:manage';
@@ -17,6 +18,9 @@ const CAN: Record<Role, Set<Permission>> = {
     'table:write',
     'keys:add',
     'lang:manage',
+    // Удаление раздела разрушительно (уносит все ключи/переводы внутри) → только admin.
+    // Создание разделов остаётся на keys:add (admin + translator).
+    'ns:manage',
     'members:manage',
     'tokens:manage',
     'project:manage',

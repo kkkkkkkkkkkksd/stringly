@@ -133,6 +133,7 @@ export function TablePage(): ReactNode {
         isLoading={namespacesQuery.isLoading}
         activeId={activeNsId}
         onSelect={setActiveNsId}
+        onActiveRemoved={() => setActiveNsId(null)}
       />
 
       <TableToolbar

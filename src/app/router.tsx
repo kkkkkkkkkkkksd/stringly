@@ -6,12 +6,16 @@ import { AppLayout } from '@/pages/app/AppLayout';
 import { TablePage } from '@/pages/app/TablePage';
 import { SettingsLayout } from '@/pages/app/settings/SettingsLayout';
 import { PreferencesPage } from '@/pages/app/settings/PreferencesPage';
+import { MembersPage } from '@/pages/app/settings/MembersPage';
+import { ConnectionsPage } from '@/pages/app/settings/ConnectionsPage';
+import { ProjectPage } from '@/pages/app/settings/ProjectPage';
+import { ProfilePage } from '@/pages/app/settings/ProfilePage';
 import { SettingsStub } from '@/pages/app/settings/SettingsStub';
 import { texts } from '@/shared/resources/i18n';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ProtectedRoute } from '@/app/guards/ProtectedRoute';
 
 const st = texts.app.settings;
-import { ProtectedRoute } from '@/app/guards/ProtectedRoute';
 import { RequireProject } from '@/app/guards/RequireProject';
 
 // Маршруты (docs/03). Публичные: лендинг, вход/регистрация.
@@ -38,34 +42,28 @@ export const router = createBrowserRouter([
             path: 'settings',
             element: <SettingsLayout />,
             children: [
-              { index: true, element: <Navigate to="languages" replace /> },
+              { index: true, element: <Navigate to="project" replace /> },
+              // Языки переехали во вкладку «Проект»; старый путь редиректим туда же.
+              { path: 'languages', element: <Navigate to="../project" replace /> },
+              { path: 'members', element: <MembersPage /> },
+              { path: 'project', element: <ProjectPage /> },
+              { path: 'connections', element: <ConnectionsPage /> },
               {
-                path: 'languages',
-                element: (
-                  <SettingsStub title={st.languages.title} description={st.languages.placeholder} />
-                ),
-              },
-              {
-                path: 'members',
-                element: (
-                  <SettingsStub title={st.members.title} description={st.members.placeholder} />
-                ),
-              },
-              {
-                path: 'connections',
+                path: 'documentation',
                 element: (
                   <SettingsStub
-                    title={st.connections.title}
-                    description={st.connections.placeholder}
+                    title={st.documentation.title}
+                    description={st.documentation.placeholder}
                   />
                 ),
               },
               {
-                path: 'profile',
+                path: 'history',
                 element: (
-                  <SettingsStub title={st.profile.title} description={st.profile.placeholder} />
+                  <SettingsStub title={st.history.title} description={st.history.placeholder} />
                 ),
               },
+              { path: 'profile', element: <ProfilePage /> },
               { path: 'preferences', element: <PreferencesPage /> },
             ],
           },

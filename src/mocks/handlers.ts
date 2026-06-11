@@ -1,6 +1,6 @@
 import { http, HttpResponse, delay } from 'msw';
 import { env } from '@/shared/config/env';
-import { slugify, pluralCategories } from '@/shared/core';
+import { slugify, pluralCategories, LOCALE_OPTIONS } from '@/shared/core';
 
 // Мок-сеть вместо бэка (docs/07). In-memory: данные живут до перезагрузки страницы.
 // Реализует контракт: auth (бессрочный токен) + projects.
@@ -44,6 +44,59 @@ const i18n = {
   values: new Map<string, Record<string, MockCellOverride>>(), // keyId -> { langCode -> override }
 };
 
+// Базовый язык, выбранный при создании проекта (онбординг). По умолчанию 'en'
+// (если в онбординге не задан). Применяется при ленивом сиде языков ниже.
+const projectBaseLang = new Map<string, string>();
+
+// Наполнять ли проект демо-данными (разделы/ключи + набор языков) или создать пустым —
+// «как настоящий новый проект» (только базовый язык, без разделов). Выбор из онбординга.
+// По умолчанию true: проекты, открытые без явного создания через онбординг (нет в карте),
+// получают демо-сид, как было раньше.
+const projectSeedDemo = new Map<string, boolean>();
+
+// ─── Участники проекта (Membership) ───────────────────────────────────────────────────
+// Засеваются лениво: владелец (текущий пользователь) = admin + пара демо-участников,
+// чтобы был виден список ролей и read-only для не-admin. Приглашение новых — заглушка (v2).
+type MockMember = {
+  id: string;
+  userId: string;
+  email: string;
+  name?: string;
+  role: 'admin' | 'translator' | 'viewer';
+  createdAt: string;
+};
+const membersByPid = new Map<string, MockMember[]>();
+
+function seedMembers(pid: string, owner: MockUser): void {
+  if (membersByPid.has(pid)) return;
+  const now = Date.now();
+  membersByPid.set(pid, [
+    {
+      id: crypto.randomUUID(),
+      userId: owner.id,
+      email: owner.email,
+      name: owner.name,
+      role: 'admin',
+      createdAt: new Date(now).toISOString(),
+    },
+    {
+      id: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
+      email: 'anna.translator@stringly.dev',
+      name: 'Anna',
+      role: 'translator',
+      createdAt: new Date(now - 2 * 86400_000).toISOString(),
+    },
+    {
+      id: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
+      email: 'viewer@stringly.dev',
+      role: 'viewer',
+      createdAt: new Date(now - 5 * 86400_000).toISOString(),
+    },
+  ]);
+}
+
 const SEED_LANGS: Omit<MockLang, 'id'>[] = [
   { code: 'en', name: 'English', isBase: true, rtl: false },
   { code: 'ru', name: 'Русский', isBase: false, rtl: false },
@@ -81,10 +134,34 @@ function genKeys(count: number): MockKey[] {
 
 function seedI18n(pid: string): void {
   if (i18n.langs.has(pid)) return;
-  i18n.langs.set(
-    pid,
-    SEED_LANGS.map((l) => ({ id: crypto.randomUUID(), ...l })),
-  );
+  // Базовый язык: выбранный в онбординге или 'en' по умолчанию.
+  const baseCode = projectBaseLang.get(pid) ?? 'en';
+  const demo = projectSeedDemo.get(pid) ?? true;
+  const baseMeta = LOCALE_OPTIONS.find((o) => o.code === baseCode);
+  const baseLang = (): MockLang => ({
+    id: crypto.randomUUID(),
+    code: baseCode,
+    name: baseMeta?.name ?? baseCode,
+    isBase: true,
+    rtl: baseMeta?.rtl ?? false,
+  });
+
+  // Пустой проект (симуляция реального нового): только базовый язык, без разделов/ключей.
+  if (!demo) {
+    i18n.langs.set(pid, [baseLang()]);
+    i18n.ns.set(pid, []);
+    return;
+  }
+
+  // Демо-проект: набор языков (выбранный — базовый) + разделы + синтетические ключи.
+  const seeded: MockLang[] = SEED_LANGS.map((l) => ({
+    id: crypto.randomUUID(),
+    ...l,
+    isBase: l.code === baseCode,
+  }));
+  // Если выбранного базового нет в демо-наборе — добавим его отдельной колонкой и сделаем базовым.
+  if (!seeded.some((l) => l.code === baseCode)) seeded.unshift(baseLang());
+  i18n.langs.set(pid, seeded);
   const nss: MockNs[] = SEED_NS.map((n, order) => ({ id: crypto.randomUUID(), ...n, order }));
   i18n.ns.set(pid, nss);
   for (const ns of nss) {
@@ -141,6 +218,33 @@ export const handlers = [
     return HttpResponse.json({ user: publicUser(user) });
   }),
 
+  // Смена email: проверяем занятость другим аккаунтом.
+  http.patch(`${base}/auth/email`, async ({ request }) => {
+    const user = userFromAuth(request);
+    if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const { email } = (await request.json()) as { email: string };
+    if (db.users.some((u) => u.email === email && u.id !== user.id)) {
+      return HttpResponse.json({ message: 'Этот email уже занят' }, { status: 409 });
+    }
+    user.email = email;
+    return HttpResponse.json({ user: publicUser(user) });
+  }),
+
+  // Смена пароля: сверяем текущий пароль.
+  http.patch(`${base}/auth/password`, async ({ request }) => {
+    const user = userFromAuth(request);
+    if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const { currentPassword, newPassword } = (await request.json()) as {
+      currentPassword: string;
+      newPassword: string;
+    };
+    if (user.password !== currentPassword) {
+      return HttpResponse.json({ message: 'Неверный текущий пароль' }, { status: 400 });
+    }
+    user.password = newPassword;
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.get(`${base}/projects`, ({ request }) => {
     const user = userFromAuth(request);
     if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
@@ -153,7 +257,11 @@ export const handlers = [
   http.post(`${base}/projects`, async ({ request }) => {
     const user = userFromAuth(request);
     if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
-    const { name } = (await request.json()) as { name: string };
+    const { name, baseLanguageCode, seedDemo } = (await request.json()) as {
+      name: string;
+      baseLanguageCode?: string;
+      seedDemo?: boolean;
+    };
     const project: MockProject = {
       id: crypto.randomUUID(),
       ownerId: user.id,
@@ -162,6 +270,28 @@ export const handlers = [
       createdAt: new Date().toISOString(),
     };
     db.projects.push(project);
+    // Запоминаем базовый язык и режим наполнения для ленивого сида.
+    projectBaseLang.set(project.id, baseLanguageCode || 'en');
+    projectSeedDemo.set(project.id, seedDemo ?? false);
+    return HttpResponse.json({
+      id: project.id,
+      name: project.name,
+      slug: project.slug,
+      role: 'admin',
+      createdAt: project.createdAt,
+    });
+  }),
+
+  // Переименование проекта (admin). Обновляем имя и slug.
+  http.patch(`${base}/projects/:pid`, async ({ request, params }) => {
+    const user = userFromAuth(request);
+    if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const project = db.projects.find((p) => p.id === pid && p.ownerId === user.id);
+    if (!project) return HttpResponse.json({ message: 'Проект не найден' }, { status: 404 });
+    const { name } = (await request.json()) as { name: string };
+    project.name = name;
+    project.slug = slugify(name);
     return HttpResponse.json({
       id: project.id,
       name: project.name,
@@ -184,9 +314,31 @@ export const handlers = [
     const pid = params.pid as string;
     seedI18n(pid);
     const { code } = (await request.json()) as { code: string };
-    const lang: MockLang = { id: crypto.randomUUID(), code, name: code, isBase: false, rtl: false };
+    // Имя/RTL берём из справочника локалей (как сделал бы бэк), а не «code = name».
+    const meta = LOCALE_OPTIONS.find((o) => o.code === code);
+    const lang: MockLang = {
+      id: crypto.randomUUID(),
+      code,
+      name: meta?.name ?? code,
+      isBase: false,
+      rtl: meta?.rtl ?? false,
+    };
     i18n.langs.get(pid)!.push(lang);
     return HttpResponse.json(lang);
+  }),
+
+  // Смена базового языка: снимаем isBase со всех, ставим на выбранный (ровно один базовый).
+  http.patch(`${base}/projects/:pid/languages/:lid`, async ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const lid = params.lid as string;
+    seedI18n(pid);
+    const { isBase } = (await request.json()) as { isBase?: boolean };
+    const list = i18n.langs.get(pid) ?? [];
+    const target = list.find((l) => l.id === lid);
+    if (!target) return HttpResponse.json({ message: 'Язык не найден' }, { status: 404 });
+    if (isBase) list.forEach((l) => (l.isBase = l.id === lid));
+    return HttpResponse.json(target);
   }),
 
   http.delete(`${base}/projects/:pid/languages/:lid`, ({ request, params }) => {
@@ -200,6 +352,48 @@ export const handlers = [
       return HttpResponse.json({ message: 'Нельзя удалить базовый язык' }, { status: 409 });
     }
     i18n.langs.set(pid, list.filter((l) => l.id !== lid));
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ─── Участники проекта (роли) ───────────────────────────────────────────────────────
+  http.get(`${base}/projects/:pid/members`, ({ request, params }) => {
+    const user = userFromAuth(request);
+    if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    seedMembers(pid, user);
+    const list = (membersByPid.get(pid) ?? []).map((m) => ({
+      id: m.id,
+      userId: m.userId,
+      email: m.email,
+      name: m.name,
+      role: m.role,
+      isYou: m.userId === user.id,
+      createdAt: m.createdAt,
+    }));
+    return HttpResponse.json(list);
+  }),
+
+  http.patch(`${base}/projects/:pid/members/:mid`, async ({ request, params }) => {
+    const user = userFromAuth(request);
+    if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const mid = params.mid as string;
+    seedMembers(pid, user);
+    const { role } = (await request.json()) as { role: 'admin' | 'translator' | 'viewer' };
+    const m = (membersByPid.get(pid) ?? []).find((x) => x.id === mid);
+    if (!m) return HttpResponse.json({ message: 'Участник не найден' }, { status: 404 });
+    m.role = role;
+    return HttpResponse.json({ ...m, isYou: m.userId === user.id });
+  }),
+
+  http.delete(`${base}/projects/:pid/members/:mid`, ({ request, params }) => {
+    const user = userFromAuth(request);
+    if (!user) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const mid = params.mid as string;
+    seedMembers(pid, user);
+    const list = membersByPid.get(pid) ?? [];
+    membersByPid.set(pid, list.filter((m) => m.id !== mid));
     return new HttpResponse(null, { status: 204 });
   }),
 
@@ -221,6 +415,22 @@ export const handlers = [
     list.push(ns);
     i18n.keys.set(ns.id, []); // новый раздел пуст → таблица покажет пустое состояние
     return HttpResponse.json(ns);
+  }),
+
+  // Удаление раздела: вместе с разделом убираем его ключи и сохранённые значения.
+  http.delete(`${base}/projects/:pid/namespaces/:nsid`, ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const nsid = params.nsid as string;
+    seedI18n(pid);
+    const list = i18n.ns.get(pid) ?? [];
+    if (!list.some((n) => n.id === nsid)) {
+      return HttpResponse.json({ message: 'Раздел не найден' }, { status: 404 });
+    }
+    for (const k of i18n.keys.get(nsid) ?? []) i18n.values.delete(k.id);
+    i18n.keys.delete(nsid);
+    i18n.ns.set(pid, list.filter((n) => n.id !== nsid));
+    return new HttpResponse(null, { status: 204 });
   }),
 
   // ─── Строки таблицы (серверная пагинация) ───────────────────────────────────────────

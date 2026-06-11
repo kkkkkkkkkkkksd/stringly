@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card, Segmented } from '@/shared/ui';
+import { Card, Segmented, SoonCard } from '@/shared/ui';
 import { texts } from '@/shared/resources/i18n';
 import { useTheme, type ThemeMode } from '@/shared/services/theme';
 
@@ -29,6 +29,10 @@ export function PreferencesPage(): ReactNode {
           />
         </div>
       </Card>
+
+      {/* Заглушки (later, docs F-33): мультиязычность интерфейса и плотность таблицы. */}
+      <SoonCard title={t.interfaceLangTitle} text={t.interfaceLangText} />
+      <SoonCard title={t.densityTitle} text={t.densityText} />
     </div>
   );
 }

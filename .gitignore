@@ -4,6 +4,9 @@ dist-ssr
 *.local
 .DS_Store
 
+# временные скомпилированные конфиги Vite (vite.config.ts → .mjs); Vite удаляет их сам
+vite.config.*.timestamp-*.mjs
+
 # логи
 npm-debug.log*
 yarn-debug.log*

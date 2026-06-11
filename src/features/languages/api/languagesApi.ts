@@ -12,4 +12,10 @@ export const languagesApi = {
     languageSchema.parse(await httpClient.post(`/projects/${pid}/languages`, { code })),
   remove: async (pid: string, lid: string) =>
     httpClient.delete<void>(`/projects/${pid}/languages/${lid}`),
+  // Смена базового языка: ровно один isBase на проект (docs/06). Бэк снимает флаг с
+  // прежнего базового и ставит на выбранный; базовый нельзя удалить (см. remove/409).
+  setBase: async (pid: string, lid: string) =>
+    languageSchema.parse(
+      await httpClient.patch(`/projects/${pid}/languages/${lid}`, { isBase: true }),
+    ),
 };

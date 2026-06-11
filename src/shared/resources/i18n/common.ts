@@ -19,10 +19,15 @@ export const common = {
     loading: 'Загрузка…',
     empty: 'Пусто',
     error: 'Что-то пошло не так',
+    soon: 'Скоро',
   },
   status: {
     reviewed: 'reviewed',
     draft: 'draft',
     empty: 'empty',
+  },
+  a11y: {
+    showPassword: 'Показать пароль',
+    hidePassword: 'Скрыть пароль',
   },
 } as const;

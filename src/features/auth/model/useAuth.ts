@@ -33,3 +33,21 @@ export function useLogout() {
     qc.clear();
   };
 }
+
+// Смена email: на успехе обновляем пользователя в сессии и кэш me.
+export function useUpdateEmail() {
+  const setUser = useSession((s) => s.setUser);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.updateEmail,
+    onSuccess: (user) => {
+      setUser(user);
+      qc.setQueryData(qk.me(), user);
+    },
+  });
+}
+
+// Смена пароля: токен бессрочный, повторный вход не требуется (refresh — позже).
+export function useUpdatePassword() {
+  return useMutation({ mutationFn: authApi.updatePassword });
+}

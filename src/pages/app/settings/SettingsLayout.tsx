@@ -18,14 +18,20 @@ export function SettingsLayout(): ReactNode {
       <h1 className="text-xl font-semibold text-ink">{t.title}</h1>
       <div className="flex min-h-0 flex-1">
         <nav className="w-48 shrink-0 space-y-1 border-r border-[var(--border)] pr-4">
-          <NavLink to="languages" className={item}>
-            {t.nav.languages}
-          </NavLink>
           <NavLink to="members" className={item}>
             {t.nav.members}
           </NavLink>
+          <NavLink to="project" className={item}>
+            {t.nav.project}
+          </NavLink>
           <NavLink to="connections" className={item}>
             {t.nav.connections}
+          </NavLink>
+          <NavLink to="documentation" className={item}>
+            {t.nav.documentation}
+          </NavLink>
+          <NavLink to="history" className={item}>
+            {t.nav.history}
           </NavLink>
           <NavLink to="profile" className={item}>
             {t.nav.profile}

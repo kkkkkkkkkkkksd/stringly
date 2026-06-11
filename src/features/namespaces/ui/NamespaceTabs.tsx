@@ -1,29 +1,34 @@
 import { useState, type ReactNode } from 'react';
 import { Skeleton } from '@/shared/ui';
-import { PlusIcon } from '@/shared/resources/assets';
+import { PlusIcon, SettingsIcon } from '@/shared/resources/assets';
 import { texts } from '@/shared/resources/i18n';
 import { Can } from '@/features/projects/ui/Can';
 import type { Namespace } from '@/entities/namespace';
 import { CreateNamespaceModal } from './CreateNamespaceModal';
+import { NamespaceManagerModal } from './NamespaceManagerModal';
 
 const t = texts.app.table;
 
 // Лента вкладок-разделов (вариант A). Горизонтальный скролл при большом числе разделов.
-// «+» открывает создание раздела с выбором типа. Активная вкладка — акцент primary.
+// «+» — быстрое создание раздела (keys:add). Шестерёнка — менеджер разделов (admin,
+// ns:manage): список с удалением + создание. Активная вкладка — акцент primary.
 export function NamespaceTabs({
   pid,
   namespaces,
   isLoading,
   activeId,
   onSelect,
+  onActiveRemoved,
 }: {
   pid: string;
   namespaces: Namespace[];
   isLoading: boolean;
   activeId: string | null;
   onSelect: (id: string) => void;
+  onActiveRemoved: () => void;
 }): ReactNode {
   const [modalOpen, setModalOpen] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
 
   return (
     <div className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-0.5">
@@ -63,11 +68,33 @@ export function NamespaceTabs({
         </button>
       </Can>
 
+      <Can perm="ns:manage">
+        <button
+          type="button"
+          onClick={() => setManagerOpen(true)}
+          title={t.namespaces.manageTooltip}
+          aria-label={t.namespaces.manageTooltip}
+          className="flex shrink-0 items-center rounded-md border border-[var(--border)] bg-surface px-2.5 py-1.5 text-muted hover:bg-subtle hover:text-ink"
+        >
+          <SettingsIcon size={16} />
+        </button>
+      </Can>
+
       <CreateNamespaceModal
         pid={pid}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onCreated={onSelect}
+      />
+
+      <NamespaceManagerModal
+        pid={pid}
+        open={managerOpen}
+        onClose={() => setManagerOpen(false)}
+        namespaces={namespaces}
+        activeId={activeId}
+        onSelect={onSelect}
+        onActiveRemoved={onActiveRemoved}
       />
     </div>
   );

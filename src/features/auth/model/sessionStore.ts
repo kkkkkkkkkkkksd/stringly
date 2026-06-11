@@ -9,6 +9,7 @@ type SessionState = {
   token: string | null;
   user: User | null;
   setSession: (token: string, user: User) => void;
+  setUser: (user: User) => void;
   clear: () => void;
 };
 
@@ -21,6 +22,8 @@ export const useSession = create<SessionState>()(
         setAuthToken(token);
         set({ token, user });
       },
+      // Обновить данные пользователя (например, после смены email), токен не трогаем.
+      setUser: (user) => set({ user }),
       clear: () => {
         setAuthToken(null);
         set({ token: null, user: null });

@@ -1,19 +1,26 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { texts } from '@/shared/resources/i18n';
-import { Button, Card, Input, Logo } from '@/shared/ui';
+import { Button, Card, Input, Logo, Segmented, Select } from '@/shared/ui';
+import { LOCALE_OPTIONS } from '@/shared/core';
+import { env } from '@/shared/config/env';
 import { useCreateProject } from '@/features/projects/model/useProjects';
 import { useLogout } from '@/features/auth/model/useAuth';
 import { useSession } from '@/features/auth/model/sessionStore';
 
+// Режим наполнения демо-проекта (только mock): с демо-данными или пустой.
+type SeedMode = 'demo' | 'empty';
+
 // Онбординг: у аккаунта нет проектов — просим создать первый. docs/03, экран 3.5.
-// «Пропустить» создаёт проект с дефолтным именем (переименование — позже в настройках).
+// «Пропустить» создаёт проект с дефолтным именем и базовым английским.
+// Базовый язык — опциональный выбор; если не задан, бэк ставит en (docs/06).
 const t = texts.onboarding;
 const schema = z.object({
   name: z.string().trim().min(1, t.nameRequired).max(25, t.nameTooLong),
+  baseLanguageCode: z.string().default('en'),
 });
 type Values = z.infer<typeof schema>;
 
@@ -26,11 +33,31 @@ export function OnboardingPage(): ReactNode {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Values>({ resolver: zodResolver(schema) });
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { baseLanguageCode: 'en' },
+  });
+
+  // Свитч показываем только в mock-режиме (демо локально/удалённо). По умолчанию — с демо-данными.
+  const [seedMode, setSeedMode] = useState<SeedMode>('demo');
 
   const goToApp = () => navigate('/app/table');
-  const onSubmit = (values: Values) => create.mutate(values.name, { onSuccess: goToApp });
-  const onSkip = () => create.mutate(t.defaultName, { onSuccess: goToApp });
+  const onSubmit = (values: Values) =>
+    create.mutate(
+      {
+        name: values.name,
+        baseLanguageCode: values.baseLanguageCode,
+        // seedDemo релевантен только для моков; в real-режиме бэк параметр игнорирует.
+        seedDemo: env.isMock ? seedMode === 'demo' : undefined,
+      },
+      { onSuccess: goToApp },
+    );
+  // Пропуск: дефолтное имя + базовый английский + пустой проект (по дефолту).
+  const onSkip = () =>
+    create.mutate(
+      { name: t.defaultName, baseLanguageCode: 'en', seedDemo: false },
+      { onSuccess: goToApp },
+    );
 
   return (
     <div className="flex min-h-full items-center justify-center px-4 py-16">
@@ -43,6 +70,31 @@ export function OnboardingPage(): ReactNode {
           <p className="mt-1.5 text-sm text-muted">{t.subtitle}</p>
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-5 space-y-3.5">
             <Input inputSize="lg" label={t.field} placeholder={t.placeholder} maxLength={25} error={errors.name?.message} {...register('name')} />
+            <div>
+              <Select label={t.baseLabel} {...register('baseLanguageCode')}>
+                {LOCALE_OPTIONS.map((o) => (
+                  <option key={o.code} value={o.code}>
+                    {o.name} ({o.code})
+                    {o.rtl ? ' · RTL' : ''}
+                  </option>
+                ))}
+              </Select>
+              <p className="mt-1.5 text-xs text-faint">{t.baseHint}</p>
+            </div>
+            {env.isMock ? (
+              <div>
+                <span className="mb-1.5 block text-xs text-muted">{t.seedLabel}</span>
+                <Segmented<SeedMode>
+                  value={seedMode}
+                  onChange={setSeedMode}
+                  options={[
+                    { value: 'demo', label: t.seedDemo },
+                    { value: 'empty', label: t.seedEmpty },
+                  ]}
+                />
+                <p className="mt-1.5 text-xs text-faint">{t.seedHint}</p>
+              </div>
+            ) : null}
             <Button type="submit" size="xl" className="w-full" disabled={create.isPending}>
               {create.isPending ? t.submitPending : t.submit}
             </Button>

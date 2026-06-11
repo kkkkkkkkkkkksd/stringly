@@ -13,3 +13,5 @@ export type AuthResponse = z.infer<typeof authResponseSchema>;
 
 export type LoginPayload = { email: string; password: string };
 export type RegisterPayload = { email: string; password: string; name?: string };
+export type UpdateEmailPayload = { email: string };
+export type UpdatePasswordPayload = { currentPassword: string; newPassword: string };

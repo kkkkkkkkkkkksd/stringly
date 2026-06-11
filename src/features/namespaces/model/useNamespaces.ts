@@ -24,3 +24,19 @@ export function useCreateNamespace(pid: string) {
     },
   });
 }
+
+// Удаление раздела (admin, <Can perm="ns:manage">). Снимаем из кэша вкладок и убираем
+// закэшированные строки удалённого раздела (они больше не нужны).
+export function useDeleteNamespace(pid: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (nsid: string) => namespacesApi.remove(pid, nsid),
+    onSuccess: (_data, nsid) => {
+      qc.setQueryData<Namespace[]>(qk.namespaces(pid), (old) =>
+        old ? old.filter((n) => n.id !== nsid) : old,
+      );
+      qc.invalidateQueries({ queryKey: qk.namespaces(pid) });
+      qc.removeQueries({ queryKey: [...qk.namespaces(pid), nsid] });
+    },
+  });
+}

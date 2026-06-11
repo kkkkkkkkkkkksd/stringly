@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
+import { SoonCard } from '@/shared/ui';
 
-// Заглушка раздела настроек (видимый, но пока без наполнения). Точка подключения готова —
-// контент Языков/Участников и т.д. добавляется на соответствующих шагах.
+// Заглушка раздела настроек (видимый, но пока без наполнения). Единый вид через SoonCard —
+// без своей вёрстки. Используется для вкладок «Документация» и «История изменений».
 export function SettingsStub({ title, description }: { title: string; description: string }): ReactNode {
   return (
-    <div className="max-w-xl space-y-2">
-      <h2 className="text-lg font-medium text-ink">{title}</h2>
-      <p className="text-sm text-muted">{description}</p>
+    <div className="max-w-2xl">
+      <SoonCard title={title} text={description} />
     </div>
   );
 }
