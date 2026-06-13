@@ -78,7 +78,7 @@ export const app = {
     states: {
       loading: 'Загрузка строк…',
       emptyTitle: 'В этом разделе пока нет ключей',
-      emptyDescription: 'Добавление ключей появится на Шаге 4. Пока раздел пуст.',
+      emptyDescription: 'Добавьте первый ключ — и можно начинать переводы.',
       noNamespacesTitle: 'В проекте пока нет разделов',
       noNamespacesDescription: 'Создайте первый раздел, чтобы начать вести переводы.',
       errorTitle: 'Не удалось загрузить таблицу',

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Badge, Button, EmptyState, Skeleton } from '@/shared/ui';
-import { InboxIcon } from '@/shared/resources/assets';
+import { InboxIcon, PlusIcon } from '@/shared/resources/assets';
 import { texts } from '@/shared/resources/i18n';
 import { useActiveProject } from '@/features/projects/model/activeProjectStore';
 import { usePermission } from '@/features/projects/model/access';
 import { useNamespaces } from '@/features/namespaces/model/useNamespaces';
 import { NamespaceTabs } from '@/features/namespaces/ui/NamespaceTabs';
+import { CreateNamespaceModal } from '@/features/namespaces/ui/CreateNamespaceModal';
 import { useLanguages } from '@/features/languages/model/useLanguages';
 import { AddLanguageModal } from '@/features/languages/ui/AddLanguageModal';
 import { AddKeyModal } from '@/features/translations-table/ui/AddKeyModal';
@@ -52,8 +53,10 @@ export function TablePage(): ReactNode {
   const isPlural = activeNs?.type === 'plurals';
 
   const editable = usePermission('table:write');
+  const canAddKey = usePermission('keys:add');
   const [addKeyOpen, setAddKeyOpen] = useState(false);
   const [addLangOpen, setAddLangOpen] = useState(false);
+  const [createNsOpen, setCreateNsOpen] = useState(false);
   const [editingKey, setEditingKey] = useState<EditingKey | null>(null);
 
   useUnsavedGuard(useEditsCount() > 0);
@@ -104,6 +107,14 @@ export function TablePage(): ReactNode {
           icon={<InboxIcon size={40} />}
           title={t.states.noNamespacesTitle}
           description={t.states.noNamespacesDescription}
+          action={
+            canAddKey ? (
+              <Button onClick={() => setCreateNsOpen(true)}>
+                <PlusIcon size={16} />
+                {t.namespaces.addBtn}
+              </Button>
+            ) : undefined
+          }
         />
       );
     if (rowsQuery.isError)
@@ -124,6 +135,14 @@ export function TablePage(): ReactNode {
           icon={<InboxIcon size={40} />}
           title={t.states.emptyTitle}
           description={t.states.emptyDescription}
+          action={
+            canAddKey ? (
+              <Button onClick={() => setAddKeyOpen(true)}>
+                <PlusIcon size={16} />
+                {t.toolbar.addKey}
+              </Button>
+            ) : undefined
+          }
         />
       );
     if (!target) return <EmptyState icon={<InboxIcon size={40} />} title={tf.noTarget} />;
@@ -158,16 +177,19 @@ export function TablePage(): ReactNode {
         activeId={activeNsId}
         onSelect={setActiveNsId}
         onActiveRemoved={() => setActiveNsId(null)}
+        onCreate={() => setCreateNsOpen(true)}
       />
 
-      <LanguageFocusBar
-        baseLang={baseLang}
-        target={target}
-        languages={languages}
-        showBase={showBase}
-        onTargetChange={setTargetCode}
-        onAddKey={() => setAddKeyOpen(true)}
-      />
+      {activeNsId ? (
+        <LanguageFocusBar
+          baseLang={baseLang}
+          target={target}
+          languages={languages}
+          showBase={showBase}
+          onTargetChange={setTargetCode}
+          onAddKey={() => setAddKeyOpen(true)}
+        />
+      ) : null}
 
       <div className="flex min-h-0 flex-1 gap-3">
         <div className="flex min-h-0 flex-1 flex-col">{renderEditorArea()}</div>
@@ -182,12 +204,14 @@ export function TablePage(): ReactNode {
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
-        <span>{tf.keyboard.move}</span>
-        <span>{tf.keyboard.newline}</span>
-        <span>{tf.keyboard.revert}</span>
-        <span>{tf.keyboard.save}</span>
-      </div>
+      {activeNsId && target ? (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
+          <span>{tf.keyboard.move}</span>
+          <span>{tf.keyboard.newline}</span>
+          <span>{tf.keyboard.revert}</span>
+          <span>{tf.keyboard.save}</span>
+        </div>
+      ) : null}
 
       {activeNsId ? (
         <AddKeyModal
@@ -198,6 +222,13 @@ export function TablePage(): ReactNode {
         />
       ) : null}
       <AddLanguageModal pid={pid} open={addLangOpen} onClose={() => setAddLangOpen(false)} />
+
+      <CreateNamespaceModal
+        pid={pid}
+        open={createNsOpen}
+        onClose={() => setCreateNsOpen(false)}
+        onCreated={setActiveNsId}
+      />
 
       {editingKey && activeNsId ? (
         <KeyEditorPopover

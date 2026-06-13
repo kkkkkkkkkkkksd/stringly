@@ -82,7 +82,7 @@ export function NamespaceManagerModal({
           {namespaces.length === 0 ? (
             <EmptyState title={t.empty} />
           ) : (
-            <ul className="max-h-80 space-y-2 overflow-auto">
+            <ul className="scrollbar-none max-h-80 space-y-2 overflow-auto">
               {namespaces.map((ns) => (
                 <li key={ns.id}>
                   <Row>
