@@ -7,33 +7,36 @@ import { usePermission } from '@/features/projects/model/access';
 import { useNamespaces } from '@/features/namespaces/model/useNamespaces';
 import { NamespaceTabs } from '@/features/namespaces/ui/NamespaceTabs';
 import { useLanguages } from '@/features/languages/model/useLanguages';
-import { useDeleteLanguage } from '@/features/languages/model/useDeleteLanguage';
 import { AddLanguageModal } from '@/features/languages/ui/AddLanguageModal';
-import { TableToolbar } from '@/features/translations-table/ui/TableToolbar';
-import { TranslationsTable } from '@/features/translations-table/ui/TranslationsTable';
 import { AddKeyModal } from '@/features/translations-table/ui/AddKeyModal';
 import { KeyEditorPopover, type EditingKey } from '@/features/translations-table/ui/KeyEditorPopover';
 import { SaveBar } from '@/features/translations-table/ui/SaveBar';
+import { LanguageFocusBar } from '@/features/translations-table/ui/LanguageFocusBar';
+import { FocusEditor } from '@/features/translations-table/ui/FocusEditor';
+import { LanguageProgressRail } from '@/features/translations-table/ui/LanguageProgressRail';
 import { useRows } from '@/features/translations-table/model/useRows';
 import { useEditsCount } from '@/features/translations-table/model/editsStore';
 import { useUnsavedGuard } from '@/features/translations-table/model/useUnsavedGuard';
+import { useLanguageProgress } from '@/features/translations-table/model/useLanguageProgress';
 import { DEFAULT_PAGE_SIZE, type RowsParams } from '@/features/translations-table/model/rowsParams';
 
 const t = texts.app.table;
+const tf = t.focus;
 
-// Скелет таблицы на время первой загрузки строк/языков.
-function TableSkeleton(): ReactNode {
+// Скелет редактора на время первой загрузки строк/языков.
+function EditorSkeleton(): ReactNode {
   return (
     <div className="min-h-0 flex-1 space-y-2 rounded-lg border border-[var(--border)] bg-surface p-3">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <Skeleton key={i} className="h-8 w-full" />
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton key={i} className="h-12 w-full" />
       ))}
     </div>
   );
 }
 
-// Экран 5 (docs/03) — ядро продукта. Шаг 3: чтение. Композиция: вкладки разделов +
-// тулбар + виртуализированная таблица. Всё привязано к активному проекту (pid).
+// Экран 5 (docs/03) — ядро продукта. Реализация Column Focus: база (эталон) → один
+// целевой язык, без горизонтального скролла; справа рейл прогресса по языкам. Всё
+// привязано к активному проекту (pid). Данные/правки — через фичу translations-table.
 export function TablePage(): ReactNode {
   const pid = useActiveProject((s) => s.activeProjectId) ?? '';
 
@@ -49,17 +52,37 @@ export function TablePage(): ReactNode {
   const isPlural = activeNs?.type === 'plurals';
 
   const editable = usePermission('table:write');
-  const canManageLang = usePermission('lang:manage');
-  const deleteLanguage = useDeleteLanguage(pid);
   const [addKeyOpen, setAddKeyOpen] = useState(false);
   const [addLangOpen, setAddLangOpen] = useState(false);
   const [editingKey, setEditingKey] = useState<EditingKey | null>(null);
 
-  // Guard на уход со страницы при несохранённых правках.
   useUnsavedGuard(useEditsCount() > 0);
 
   const languagesQuery = useLanguages(pid);
   const languages = useMemo(() => languagesQuery.data ?? [], [languagesQuery.data]);
+  const baseLang = languages.find((l) => l.isBase) ?? languages[0] ?? null;
+
+  // Язык, который редактируем. По умолчанию — первый неосновной; если других языков нет,
+  // редактируем сам базовый (на старте проекта заполняем исходные строки). Сбрасываем,
+  // если выбранный язык удалён из проекта.
+  const [targetCode, setTargetCode] = useState<string | null>(null);
+  useEffect(() => {
+    if (languages.length === 0) {
+      if (targetCode !== null) setTargetCode(null);
+      return;
+    }
+    const stillValid = targetCode && languages.some((l) => l.code === targetCode);
+    if (!stillValid) {
+      const def = languages.find((l) => !l.isBase) ?? baseLang;
+      setTargetCode(def?.code ?? null);
+    }
+  }, [languages, targetCode, baseLang]);
+  const target = languages.find((l) => l.code === targetCode) ?? null;
+  // Колонку-эталон показываем, только когда редактируем не базовый язык (иначе дубль).
+  const showBase = !!baseLang && !!target && target.code !== baseLang.code;
+
+  const progressQuery = useLanguageProgress(pid, activeNsId);
+  const progress = useMemo(() => progressQuery.data ?? [], [progressQuery.data]);
 
   const params = useMemo<RowsParams>(() => ({ pageSize: DEFAULT_PAGE_SIZE }), []);
   const rowsQuery = useRows(pid, activeNsId, params);
@@ -73,8 +96,8 @@ export function TablePage(): ReactNode {
     namespacesQuery.isLoading ||
     (!!activeNsId && (languagesQuery.isLoading || rowsQuery.isLoading));
 
-  function renderRegion(): ReactNode {
-    if (loadingFirst) return <TableSkeleton />;
+  function renderEditorArea(): ReactNode {
+    if (loadingFirst) return <EditorSkeleton />;
     if (namespaces.length === 0)
       return (
         <EmptyState
@@ -103,15 +126,16 @@ export function TablePage(): ReactNode {
           description={t.states.emptyDescription}
         />
       );
+    if (!target) return <EmptyState icon={<InboxIcon size={40} />} title={tf.noTarget} />;
     return (
-      <TranslationsTable
-        languages={languages}
+      <FocusEditor
         rows={rows}
+        baseCode={baseLang?.code ?? target.code}
+        target={target}
+        showBase={showBase}
         isPlural={isPlural}
         editable={editable}
-        canManageLang={canManageLang}
         onEditKey={setEditingKey}
-        onDeleteLanguage={(lid) => deleteLanguage.mutate(lid)}
         hasNextPage={!!rowsQuery.hasNextPage}
         isFetchingNextPage={rowsQuery.isFetchingNextPage}
         fetchNextPage={rowsQuery.fetchNextPage}
@@ -136,12 +160,34 @@ export function TablePage(): ReactNode {
         onActiveRemoved={() => setActiveNsId(null)}
       />
 
-      <TableToolbar
+      <LanguageFocusBar
+        baseLang={baseLang}
+        target={target}
+        languages={languages}
+        showBase={showBase}
+        onTargetChange={setTargetCode}
         onAddKey={() => setAddKeyOpen(true)}
-        onAddLanguage={() => setAddLangOpen(true)}
       />
 
-      {renderRegion()}
+      <div className="flex min-h-0 flex-1 gap-3">
+        <div className="flex min-h-0 flex-1 flex-col">{renderEditorArea()}</div>
+        {namespaces.length > 0 ? (
+          <LanguageProgressRail
+            progress={progress}
+            isLoading={progressQuery.isLoading}
+            targetCode={targetCode}
+            onSelect={setTargetCode}
+            onAddLanguage={() => setAddLangOpen(true)}
+          />
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
+        <span>{tf.keyboard.move}</span>
+        <span>{tf.keyboard.newline}</span>
+        <span>{tf.keyboard.revert}</span>
+        <span>{tf.keyboard.save}</span>
+      </div>
 
       {activeNsId ? (
         <AddKeyModal

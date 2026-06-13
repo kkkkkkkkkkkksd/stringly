@@ -491,6 +491,36 @@ export const handlers = [
     return HttpResponse.json({ rows, page, pageSize, total: keys.length });
   }),
 
+  // ─── Прогресс заполнения по языкам в разделе (считается на сервере) ─────────────────
+  // filled/total по каждому языку. Логика «заполнено?» зеркалит генерацию строк выше,
+  // чтобы рейл прогресса совпадал с тем, что видно в таблице.
+  http.get(`${base}/projects/:pid/namespaces/:nsid/stats`, ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const nsid = params.nsid as string;
+    seedI18n(pid);
+    const langs = i18n.langs.get(pid) ?? [];
+    const keys = i18n.keys.get(nsid) ?? [];
+    const isPlural = (i18n.ns.get(pid) ?? []).find((n) => n.id === nsid)?.type === 'plurals';
+
+    const stats = langs.map((lang, langIndex) => {
+      let filled = 0;
+      keys.forEach((k, keyIndex) => {
+        const ov = (i18n.values.get(k.id) ?? {})[lang.code];
+        const isFilled = ov
+          ? !!(ov.plural ? (ov.plural.other ?? ov.plural.one ?? '') : (ov.value ?? '')).trim()
+          : k.blank
+            ? false
+            : lang.isBase || (keyIndex + langIndex) % 5 !== 0;
+        if (isFilled) filled += 1;
+      });
+      void isPlural; // правило «заполнено?» одинаково для strings и plurals в моке
+      return { code: lang.code, name: lang.name, isBase: lang.isBase, rtl: lang.rtl, filled, total: keys.length };
+    });
+
+    return HttpResponse.json({ stats, total: keys.length });
+  }),
+
   // Добавление ключа в раздел (новый ключ — пустой).
   http.post(`${base}/projects/:pid/namespaces/:nsid/keys`, async ({ request, params }) => {
     if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });

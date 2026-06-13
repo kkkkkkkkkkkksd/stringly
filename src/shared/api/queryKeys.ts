@@ -13,5 +13,7 @@ export const qk = {
   namespaces: (pid: string) => ['projects', pid, 'namespaces'] as const,
   rows: (pid: string, nsid: string, params: unknown) =>
     ['projects', pid, 'namespaces', nsid, 'rows', params] as const,
+  langStats: (pid: string, nsid: string) =>
+    ['projects', pid, 'namespaces', nsid, 'stats'] as const,
   tokens: (pid: string) => ['projects', pid, 'tokens'] as const,
 } as const;

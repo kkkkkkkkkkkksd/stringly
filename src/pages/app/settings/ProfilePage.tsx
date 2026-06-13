@@ -24,7 +24,7 @@ function ChangeEmailForm({ currentEmail }: { currentEmail: string }): ReactNode 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<Values>({ resolver: zodResolver(schema) });
 
   const onSubmit = (values: Values) => update.mutate({ email: values.email });
@@ -43,7 +43,7 @@ function ChangeEmailForm({ currentEmail }: { currentEmail: string }): ReactNode 
         />
         <FormNote error={update.error} success={update.isSuccess ? te.success : undefined} />
         <div className="flex justify-end">
-          <Button type="submit" disabled={update.isPending}>
+          <Button type="submit" disabled={update.isPending || !isDirty}>
             {update.isPending ? te.pending : te.submit}
           </Button>
         </div>
@@ -72,7 +72,7 @@ function ChangePasswordForm(): ReactNode {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<Values>({ resolver: zodResolver(schema) });
 
   const onSubmit = (values: Values) =>
@@ -111,7 +111,7 @@ function ChangePasswordForm(): ReactNode {
         />
         <FormNote error={update.error} success={update.isSuccess ? tp.success : undefined} />
         <div className="flex justify-end">
-          <Button type="submit" disabled={update.isPending}>
+          <Button type="submit" disabled={update.isPending || !isDirty}>
             {update.isPending ? tp.pending : tp.submit}
           </Button>
         </div>

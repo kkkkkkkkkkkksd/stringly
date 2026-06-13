@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,11 +34,8 @@ export function ProjectPage(): ReactNode {
 
   // Успех и ошибки — инлайн под полем (как смена email/пароля в профиле), через FormNote.
   // Имя проекта не обязано быть уникальным → проверки «уже существует» нет.
-  // Сбрасываем флаг успеха при новых правках, чтобы «успех» не висел во время ввода.
-  useEffect(() => {
-    if (isDirty && rename.isSuccess) rename.reset();
-  }, [isDirty, rename]);
-
+  // reset(values) после успеха снимает «dirty» (кнопка гаснет); успех показываем, пока
+  // поле не изменили заново (success && !isDirty) — без хрупкого сброса мутации в эффекте.
   const onSubmit = (values: Values) =>
     rename.mutate(values.name, { onSuccess: () => reset(values) });
 
@@ -61,7 +58,10 @@ export function ProjectPage(): ReactNode {
             error={errors.name?.message}
             {...register('name')}
           />
-          <FormNote error={rename.error} success={rename.isSuccess ? t.success : undefined} />
+          <FormNote
+            error={rename.error}
+            success={rename.isSuccess && !isDirty ? t.success : undefined}
+          />
           {canManage ? (
             <div className="flex justify-end">
               <Button type="submit" disabled={rename.isPending || !isDirty}>

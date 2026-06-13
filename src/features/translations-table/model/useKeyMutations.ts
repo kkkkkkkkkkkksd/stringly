@@ -71,6 +71,7 @@ export function useDeleteKey(pid: string, nsid: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => ctx?.prev?.forEach(([key, data]) => qc.setQueryData(key, data)),
-    onSettled: () => qc.invalidateQueries(scope),
+    // Инвалидируем весь раздел (строки + прогресс языков): total изменился.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['projects', pid, 'namespaces', nsid] }),
   });
 }

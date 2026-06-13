@@ -10,6 +10,19 @@ const keySchema = z.object({
   comment: z.string().optional(),
 });
 
+// Прогресс заполнения по языкам в разделе (считается на сервере — не из строк на клиенте,
+// чтобы оставаться масштабируемым при тысячах ключей). filled/total по каждому языку.
+export const langStatSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  isBase: z.boolean(),
+  rtl: z.boolean(),
+  filled: z.number(),
+  total: z.number(),
+});
+export type LangStat = z.infer<typeof langStatSchema>;
+const langStatsSchema = z.object({ stats: z.array(langStatSchema), total: z.number() });
+
 // Слой данных таблицы переводов (docs/07). Серверная пагинация: одна страница за запрос.
 export const translationsApi = {
   getRows: async (pid: string, nsid: string, params: RowsParams & { page: number }) => {
@@ -23,6 +36,11 @@ export const translationsApi = {
       await httpClient.get(`/projects/${pid}/namespaces/${nsid}/rows?${qs.toString()}`),
     );
   },
+  // Прогресс заполнения по языкам в разделе (для рейла Column Focus).
+  languageStats: async (pid: string, nsid: string) =>
+    langStatsSchema.parse(
+      await httpClient.get(`/projects/${pid}/namespaces/${nsid}/stats`),
+    ),
   // Батч-сохранение изменённых ячеек одним запросом.
   patch: async (pid: string, changes: CellChange[]) =>
     z.object({ updated: z.number() }).parse(

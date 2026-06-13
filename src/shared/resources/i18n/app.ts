@@ -1,29 +1,51 @@
 // Тексты рабочей области (каркас, заглушки экранов) и 404.
 export const app = {
-  nav: { table: 'Таблица', settings: 'Настройки' },
-  projectSwitcher: { soon: 'скоро ▾', tooltip: 'Переключение и создание проектов — скоро' },
+  topnav: {
+    brandTitle: 'К таблице переводов',
+    account: 'Аккаунт и настройки',
+  },
+  account: {
+    projectsLabel: 'Проекты',
+    newProject: 'Новый проект',
+    newProjectSoon: 'Создание проектов — скоро',
+    settings: 'Настройки',
+    members: 'Участники',
+    projectAndLanguages: 'Языки и проект',
+    themeLabel: 'Тема',
+    connections: 'Подключения',
+    history: 'История изменений',
+    documentation: 'Документация',
+    soon: 'скоро',
+    signOut: 'Выйти',
+  },
   table: {
     title: 'Таблица переводов',
     columns: { code: 'Ключ', comment: 'Комментарий' },
     typeBadge: { strings: 'Строки', plurals: 'Plurals' },
     baseBadge: 'база',
-    langMenu: {
-      trigger: 'Действия с языком',
-      delete: 'Удалить язык',
-      confirm: (code: string) =>
-        `Удалить язык «${code}»? Все переводы на этом языке будут потеряны.`,
-      confirmBtn: 'Удалить',
-      cancel: 'Отмена',
-    },
     emptyCell: '—',
     keysCount: (n: number) => `Ключей: ${n}`,
+    focus: {
+      columns: { key: 'Ключ', base: 'База (эталон)', target: 'Перевод' },
+      targetSelect: 'Язык перевода',
+      rail: {
+        title: 'Языки',
+        addLanguage: 'Добавить язык',
+      },
+      progress: (pct: number) => `${pct}%`,
+      noTarget: 'Выберите язык перевода',
+      pluralLabel: (cat: string) => cat,
+      keyboard: {
+        move: 'Tab — следующее поле',
+        newline: 'Enter — новая строка',
+        revert: 'Esc — отменить',
+        save: 'Ctrl/⌘+Enter — сохранить',
+      },
+    },
     toolbar: {
       searchPlaceholder: 'Поиск по ключам',
-      filter: 'Фильтр',
       addKey: 'Ключ',
       addLanguage: 'Язык',
-      save: 'Сохранить',
-      soon: 'Появится на Шаге 4 (редактирование)',
       searchSoon: 'Поиск и фильтры — следующая итерация',
     },
     namespaces: {

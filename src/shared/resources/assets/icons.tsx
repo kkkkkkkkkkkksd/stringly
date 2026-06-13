@@ -164,6 +164,52 @@ export const EyeOffIcon = (p: IconProps): ReactNode => (
   </Svg>
 );
 
+// Выход (logout).
+export const LogoutIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 17l5-5-5-5M21 12H9" {...line} />
+  </Svg>
+);
+
+// Участники (люди).
+export const UsersIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" {...line} />
+    <circle cx={9} cy={7} r={3.2} stroke="currentColor" strokeWidth={1.8} />
+    <path d="M22 19v-1a4 4 0 0 0-3-3.85M16 4.15A4 4 0 0 1 16 11.7" {...line} />
+  </Svg>
+);
+
+// История (часы со стрелкой).
+export const HistoryIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" {...line} />
+    <path d="M3 4v4h4M12 8v4l3 2" {...line} />
+  </Svg>
+);
+
+// Документ.
+export const DocIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6" {...line} />
+  </Svg>
+);
+
+// Помощь (вопрос в круге).
+export const HelpIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <circle cx={12} cy={12} r={9} stroke="currentColor" strokeWidth={1.8} />
+    <path d="M9.5 9a2.5 2.5 0 0 1 4.5 1.5c0 1.7-2 2-2 3.5M12 17h.01" {...line} />
+  </Svg>
+);
+
+// Стрелка вправо (далее / переход).
+export const ChevronRightIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="m9 6 6 6-6 6" {...line} />
+  </Svg>
+);
+
 // Шестерёнка (настройки/управление). Канонический путь Lucide «settings» (24×24).
 export const SettingsIcon = (p: IconProps): ReactNode => (
   <Svg {...p}>

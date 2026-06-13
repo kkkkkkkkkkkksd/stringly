@@ -10,6 +10,8 @@ export { Input } from './Input';
 export { Card } from './Card';
 export { Segmented } from './Segmented';
 export { InitialAvatar } from './InitialAvatar';
+export { Menu, MenuItem, MenuSeparator, MenuLabel } from './Menu';
+export { ProgressBar } from './ProgressBar';
 export { Modal } from './Modal';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
