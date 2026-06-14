@@ -25,7 +25,7 @@ function ChangeEmailForm({ currentEmail }: { currentEmail: string }): ReactNode 
     register,
     handleSubmit,
     formState: { errors, isDirty },
-  } = useForm<Values>({ resolver: zodResolver(schema) });
+  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: '' } });
 
   const onSubmit = (values: Values) => update.mutate({ email: values.email });
 
@@ -73,7 +73,10 @@ function ChangePasswordForm(): ReactNode {
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<Values>({ resolver: zodResolver(schema) });
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { currentPassword: '', newPassword: '', confirm: '' },
+  });
 
   const onSubmit = (values: Values) =>
     update.mutate(

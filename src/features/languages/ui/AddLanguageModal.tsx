@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Button, Modal, Select } from '@/shared/ui';
+import { Button, Modal, Select, ToggleField } from '@/shared/ui';
+import { SparkleIcon } from '@/shared/resources/assets';
 import { LOCALE_OPTIONS } from '@/shared/core';
 import { texts } from '@/shared/resources/i18n';
 import { useLanguages } from '../model/useLanguages';
@@ -23,16 +24,18 @@ export function AddLanguageModal({
   const options = LOCALE_OPTIONS.filter((o) => !existing.has(o.code));
 
   const [code, setCode] = useState('');
+  const [ai, setAi] = useState(true);
   const value = code || options[0]?.code || '';
   const add = useAddLanguage(pid);
 
   const close = () => {
     setCode('');
+    setAi(true);
     add.reset();
     onClose();
   };
   const submit = () => {
-    if (value) add.mutate(value, { onSuccess: close });
+    if (value) add.mutate({ code: value, ai }, { onSuccess: close });
   };
 
   return (
@@ -45,6 +48,13 @@ export function AddLanguageModal({
             </option>
           ))}
         </Select>
+        <ToggleField
+          icon={<SparkleIcon size={15} />}
+          label={t.aiSwitch}
+          hint={t.aiSwitchHint}
+          checked={ai}
+          onChange={setAi}
+        />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={close}>
             {texts.common.actions.cancel}

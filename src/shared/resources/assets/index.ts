@@ -18,6 +18,7 @@ export {
   ChevronRightIcon,
   SettingsIcon,
   LogoutIcon,
+  SparkleIcon,
   UsersIcon,
   HistoryIcon,
   DocIcon,

@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { Button, Select } from '@/shared/ui';
-import { KeyIcon, PlusIcon } from '@/shared/resources/assets';
+import { KeyIcon, PlusIcon, SparkleIcon } from '@/shared/resources/assets';
 import { texts } from '@/shared/resources/i18n';
 import { Can } from '@/features/projects/ui/Can';
 import type { Language } from '@/entities/language';
 
 const tt = texts.app.table.toolbar;
 const tf = texts.app.table.focus;
+const tAi = texts.app.table.ai;
 
 // Панель выбора того, что редактируем (Column Focus). Целью может быть любой язык, включая
 // базовый (на старте проекта заполняем сами исходные строки). Когда цель ≠ база — слева
@@ -19,6 +20,8 @@ export function LanguageFocusBar({
   showBase,
   onTargetChange,
   onAddKey,
+  onAiFill,
+  filling,
 }: {
   baseLang: Language | null;
   target: Language | null;
@@ -26,6 +29,8 @@ export function LanguageFocusBar({
   showBase: boolean;
   onTargetChange: (code: string) => void;
   onAddKey: () => void;
+  onAiFill: (code: string) => void;
+  filling: boolean;
 }): ReactNode {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -58,6 +63,15 @@ export function LanguageFocusBar({
           </option>
         ))}
       </Select>
+
+      {target && !target.isBase ? (
+        <Can perm="table:write">
+          <Button variant="secondary" onClick={() => onAiFill(target.code)} disabled={filling}>
+            <SparkleIcon size={16} />
+            {tAi.fillTarget}
+          </Button>
+        </Can>
+      ) : null}
 
       <Can perm="keys:add">
         <Button variant="secondary" onClick={onAddKey}>

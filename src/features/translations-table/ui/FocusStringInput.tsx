@@ -1,5 +1,22 @@
 import { memo, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { SparkleIcon } from '@/shared/resources/assets';
+import { texts } from '@/shared/resources/i18n';
 import { cellKeyOf, useEdits } from '../model/editsStore';
+
+const tAi = texts.app.table.ai;
+
+// Метка «✨ AI» поверх поля: значение сгенерировано AI и ещё не правлено человеком.
+function AiBadge(): ReactNode {
+  return (
+    <span
+      title={tAi.tooltip}
+      className="pointer-events-none absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary-tint px-2 py-0.5 text-[10px] font-semibold text-primary-hover"
+    >
+      <SparkleIcon size={11} />
+      {tAi.badge}
+    </span>
+  );
+}
 
 // Поле перевода обычной строки (Column Focus). Просторный авто-растущий textarea — текст
 // виден целиком, без обрезки. МЕМОИЗИРОВАН + ТОЧЕЧНАЯ подписка на буфер правок
@@ -12,6 +29,7 @@ export const FocusStringInput = memo(function FocusStringInput({
   rtl,
   editable,
   placeholder,
+  ai,
 }: {
   keyId: string;
   langCode: string;
@@ -19,6 +37,7 @@ export const FocusStringInput = memo(function FocusStringInput({
   rtl: boolean;
   editable: boolean;
   placeholder: string;
+  ai: boolean;
 }): ReactNode {
   const cellKey = cellKeyOf(keyId, langCode);
   const edit = useEdits((s) => s.edits[cellKey]);
@@ -41,28 +60,34 @@ export const FocusStringInput = memo(function FocusStringInput({
     else setEdit(cellKey, { value: v });
   };
 
+  const showAi = ai && !dirty;
+
   return (
-    <textarea
-      ref={taRef}
-      dir={rtl ? 'rtl' : undefined}
-      value={value}
-      readOnly={!editable}
-      placeholder={editable ? placeholder : undefined}
-      onChange={(e) => change(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          removeEdit(cellKey);
-          e.currentTarget.blur();
-        }
-      }}
-      rows={1}
-      className={[
-        'w-full resize-none overflow-hidden rounded-md border bg-transparent px-3 py-2 text-sm text-ink',
-        'placeholder:text-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]',
-        editable ? 'cursor-text hover:bg-page' : 'cursor-default',
-        dirty ? 'border-[color:var(--cell-dirty-border)] bg-[var(--cell-dirty-bg)]' : 'border-transparent',
-      ].join(' ')}
-    />
+    <div className="relative">
+      <textarea
+        ref={taRef}
+        dir={rtl ? 'rtl' : undefined}
+        value={value}
+        readOnly={!editable}
+        placeholder={editable ? placeholder : undefined}
+        onChange={(e) => change(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            removeEdit(cellKey);
+            e.currentTarget.blur();
+          }
+        }}
+        rows={1}
+        className={[
+          'w-full resize-none overflow-hidden rounded-md border bg-transparent px-3 py-2 text-sm text-ink',
+          showAi ? 'pr-12' : '',
+          'placeholder:text-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]',
+          editable ? 'cursor-text hover:bg-page' : 'cursor-default',
+          dirty ? 'border-[color:var(--cell-dirty-border)] bg-[var(--cell-dirty-bg)]' : 'border-transparent',
+        ].join(' ')}
+      />
+      {showAi ? <AiBadge /> : null}
+    </div>
   );
 });

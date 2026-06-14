@@ -25,6 +25,9 @@ module.exports = {
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    // Длина ФАЙЛА: подталкиваем дробить большие компоненты/модули (KISS). Ширина строки —
+    // отдельно у Prettier (printWidth: 100). Реестры/данные исключены в overrides ниже.
+    'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
     // импорт только «вниз» по слоям
     'boundaries/element-types': [
       'error',
@@ -40,4 +43,17 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      // Реестры/данные/тесты — естественно длинные (это не логика): моки, i18n-строки,
+      // иконки-ассеты, тестовые файлы. Лимит длины файла к ним не применяем.
+      files: [
+        'src/mocks/**',
+        'src/shared/resources/i18n/**',
+        'src/shared/resources/assets/**',
+        '**/*.test.{ts,tsx}',
+      ],
+      rules: { 'max-lines': 'off' },
+    },
+  ],
 };

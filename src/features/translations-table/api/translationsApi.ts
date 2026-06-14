@@ -46,9 +46,17 @@ export const translationsApi = {
     z.object({ updated: z.number() }).parse(
       await httpClient.patch(`/projects/${pid}/translations`, { changes }),
     ),
-  // Добавление ключа в раздел.
-  addKey: async (pid: string, nsid: string, input: { code: string; comment?: string }) =>
-    keySchema.parse(await httpClient.post(`/projects/${pid}/namespaces/${nsid}/keys`, input)),
+  // Добавление ключа в раздел: code + (опц.) базовый перевод + флаг AI-доперевода.
+  addKey: async (
+    pid: string,
+    nsid: string,
+    input: { code: string; comment?: string; baseValue?: string; ai?: boolean },
+  ) => keySchema.parse(await httpClient.post(`/projects/${pid}/namespaces/${nsid}/keys`, input)),
+  // AI-дозаполнение пустых ячеек языка в разделе (мок). Возвращает число заполненных.
+  aiFill: async (pid: string, nsid: string, langCode: string) =>
+    z.object({ filled: z.number() }).parse(
+      await httpClient.post(`/projects/${pid}/namespaces/${nsid}/ai-fill`, { langCode }),
+    ),
   // Переименование ключа / изменение комментария.
   updateKey: async (pid: string, keyId: string, input: { code?: string; comment?: string }) =>
     keySchema.parse(await httpClient.patch(`/projects/${pid}/keys/${keyId}`, input)),

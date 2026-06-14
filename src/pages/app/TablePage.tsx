@@ -19,6 +19,7 @@ import { useRows } from '@/features/translations-table/model/useRows';
 import { useEditsCount } from '@/features/translations-table/model/editsStore';
 import { useUnsavedGuard } from '@/features/translations-table/model/useUnsavedGuard';
 import { useLanguageProgress } from '@/features/translations-table/model/useLanguageProgress';
+import { useAiFill } from '@/features/translations-table/model/useAiFill';
 import { DEFAULT_PAGE_SIZE, type RowsParams } from '@/features/translations-table/model/rowsParams';
 
 const t = texts.app.table;
@@ -86,6 +87,9 @@ export function TablePage(): ReactNode {
 
   const progressQuery = useLanguageProgress(pid, activeNsId);
   const progress = useMemo(() => progressQuery.data ?? [], [progressQuery.data]);
+
+  const aiFill = useAiFill(pid, activeNsId);
+  const fillingCode = aiFill.isPending ? (aiFill.variables ?? null) : null;
 
   const params = useMemo<RowsParams>(() => ({ pageSize: DEFAULT_PAGE_SIZE }), []);
   const rowsQuery = useRows(pid, activeNsId, params);
@@ -188,6 +192,8 @@ export function TablePage(): ReactNode {
           showBase={showBase}
           onTargetChange={setTargetCode}
           onAddKey={() => setAddKeyOpen(true)}
+          onAiFill={(code) => aiFill.mutate(code)}
+          filling={aiFill.isPending}
         />
       ) : null}
 
@@ -200,6 +206,8 @@ export function TablePage(): ReactNode {
             targetCode={targetCode}
             onSelect={setTargetCode}
             onAddLanguage={() => setAddLangOpen(true)}
+            onAiFill={(code) => aiFill.mutate(code)}
+            fillingCode={fillingCode}
           />
         ) : null}
       </div>

@@ -35,7 +35,11 @@ type MockLang = { id: string; code: string; name: string; isBase: boolean; rtl: 
 type MockNs = { id: string; name: string; type: 'strings' | 'plurals'; order: number };
 type MockKey = { id: string; code: string; comment?: string; blank?: boolean };
 // Сохранённое значение ячейки (после PATCH): value для strings, plural-формы для plurals.
-type MockCellOverride = { value?: string; plural?: Record<string, string> };
+// ai=true — значение сгенерировано AI и ещё не правлено человеком (метка ✨AI).
+type MockCellOverride = { value?: string; plural?: Record<string, string>; ai?: boolean };
+
+// Мок AI: реальной генерации нет — пишем одну фразу. Реализация заменится позже.
+const AI_PHRASE = 'Генерация AI';
 
 const i18n = {
   langs: new Map<string, MockLang[]>(), // pid -> языки
@@ -178,6 +182,21 @@ function valueFor(lang: MockLang, keyIndex: number, langIndex: number): string {
   return lang.isBase ? 'string' : `string(${lang.code})`;
 }
 
+// Заполнена ли ячейка (key × lang) — единая логика для прогресса (stats) и AI-дозаполнения.
+function cellFilled(
+  key: MockKey,
+  keyIndex: number,
+  lang: MockLang,
+  langIndex: number,
+  isPlural: boolean,
+): boolean {
+  const ov = (i18n.values.get(key.id) ?? {})[lang.code];
+  if (ov) return !!(ov.plural ? (ov.plural.other ?? ov.plural.one ?? '') : (ov.value ?? '')).trim();
+  if (key.blank) return false;
+  if (isPlural) return lang.isBase || (keyIndex + langIndex) % 5 !== 0;
+  return valueFor(lang, keyIndex, langIndex).trim() !== '';
+}
+
 export const handlers = [
   http.get(`${base}/health`, () =>
     HttpResponse.json({ status: 'ok', mode: env.apiMode, ts: Date.now() }),
@@ -313,7 +332,7 @@ export const handlers = [
     if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
     const pid = params.pid as string;
     seedI18n(pid);
-    const { code } = (await request.json()) as { code: string };
+    const { code, ai } = (await request.json()) as { code: string; ai?: boolean };
     // Имя/RTL берём из справочника локалей (как сделал бы бэк), а не «code = name».
     const meta = LOCALE_OPTIONS.find((o) => o.code === code);
     const lang: MockLang = {
@@ -324,6 +343,19 @@ export const handlers = [
       rtl: meta?.rtl ?? false,
     };
     i18n.langs.get(pid)!.push(lang);
+
+    // Новый язык — пустой по определению. Если попросили AI — переводим все ключи во всех
+    // разделах мок-фразой (реальной генерации нет).
+    if (ai) {
+      for (const ns of i18n.ns.get(pid) ?? []) {
+        for (const k of i18n.keys.get(ns.id) ?? []) {
+          const cur = i18n.values.get(k.id) ?? {};
+          cur[code] = { value: AI_PHRASE, ai: true };
+          i18n.values.set(k.id, cur);
+        }
+      }
+    }
+
     return HttpResponse.json(lang);
   }),
 
@@ -451,7 +483,7 @@ export const handlers = [
     const start = (page - 1) * pageSize;
     const slice = keys.slice(start, start + pageSize);
 
-    type OutCell = { value: string; status: string; plural?: Record<string, string> };
+    type OutCell = { value: string; status: string; plural?: Record<string, string>; ai?: boolean };
 
     const rows = slice.map((k, idx) => {
       const keyIndex = start + idx;
@@ -460,13 +492,13 @@ export const handlers = [
       langs.forEach((lang, langIndex) => {
         const ov = overrides[lang.code];
         if (ov) {
-          // сохранённое значение (после PATCH)
+          // сохранённое значение (после PATCH / AI-заполнения)
           if (ov.plural) {
             const v = ov.plural.other ?? ov.plural.one ?? '';
-            values[lang.code] = { value: v, status: v ? 'reviewed' : 'empty', plural: ov.plural };
+            values[lang.code] = { value: v, status: v ? 'reviewed' : 'empty', plural: ov.plural, ai: !!ov.ai };
           } else {
             const v = ov.value ?? '';
-            values[lang.code] = { value: v, status: v ? 'reviewed' : 'empty' };
+            values[lang.code] = { value: v, status: v ? 'reviewed' : 'empty', ai: !!ov.ai };
           }
         } else if (k.blank) {
           // новый ключ — пустой, заполняется пользователем
@@ -506,19 +538,39 @@ export const handlers = [
     const stats = langs.map((lang, langIndex) => {
       let filled = 0;
       keys.forEach((k, keyIndex) => {
-        const ov = (i18n.values.get(k.id) ?? {})[lang.code];
-        const isFilled = ov
-          ? !!(ov.plural ? (ov.plural.other ?? ov.plural.one ?? '') : (ov.value ?? '')).trim()
-          : k.blank
-            ? false
-            : lang.isBase || (keyIndex + langIndex) % 5 !== 0;
-        if (isFilled) filled += 1;
+        if (cellFilled(k, keyIndex, lang, langIndex, isPlural)) filled += 1;
       });
-      void isPlural; // правило «заполнено?» одинаково для strings и plurals в моке
       return { code: lang.code, name: lang.name, isBase: lang.isBase, rtl: lang.rtl, filled, total: keys.length };
     });
 
     return HttpResponse.json({ stats, total: keys.length });
+  }),
+
+  // AI-дозаполнение: заполняем ТОЛЬКО пустые ячейки указанного языка в разделе фразой-моком
+  // (реальной генерации нет). Ручной текст не трогаем.
+  http.post(`${base}/projects/:pid/namespaces/:nsid/ai-fill`, async ({ request, params }) => {
+    if (!userFromAuth(request)) return HttpResponse.json({ message: 'Не авторизован' }, { status: 401 });
+    const pid = params.pid as string;
+    const nsid = params.nsid as string;
+    seedI18n(pid);
+    const { langCode } = (await request.json()) as { langCode: string };
+    const langs = i18n.langs.get(pid) ?? [];
+    const langIndex = langs.findIndex((l) => l.code === langCode);
+    const lang = langs[langIndex];
+    if (!lang) return HttpResponse.json({ message: 'Язык не найден' }, { status: 404 });
+    const keys = i18n.keys.get(nsid) ?? [];
+    const isPlural = (i18n.ns.get(pid) ?? []).find((n) => n.id === nsid)?.type === 'plurals';
+    let filled = 0;
+    keys.forEach((k, keyIndex) => {
+      if (!cellFilled(k, keyIndex, lang, langIndex, isPlural)) {
+        const cur = i18n.values.get(k.id) ?? {};
+        cur[langCode] = { value: AI_PHRASE, ai: true };
+        i18n.values.set(k.id, cur);
+        filled += 1;
+      }
+    });
+    await delay(250);
+    return HttpResponse.json({ filled });
   }),
 
   // Добавление ключа в раздел (новый ключ — пустой).
@@ -527,9 +579,25 @@ export const handlers = [
     const pid = params.pid as string;
     const nsid = params.nsid as string;
     seedI18n(pid);
-    const { code, comment } = (await request.json()) as { code: string; comment?: string };
+    const { code, comment, baseValue, ai } = (await request.json()) as {
+      code: string;
+      comment?: string;
+      baseValue?: string;
+      ai?: boolean;
+    };
     const key: MockKey = { id: crypto.randomUUID(), code, comment, blank: true };
     (i18n.keys.get(nsid) ?? []).push(key);
+
+    // Базовый перевод (если задан) + AI-доперевод остальных языков (мок-фраза).
+    const langs = i18n.langs.get(pid) ?? [];
+    const baseLang = langs.find((l) => l.isBase) ?? langs[0];
+    const overrides: Record<string, MockCellOverride> = {};
+    if (baseValue && baseLang) overrides[baseLang.code] = { value: baseValue };
+    if (ai && baseLang) {
+      for (const l of langs) if (!l.isBase) overrides[l.code] = { value: AI_PHRASE, ai: true };
+    }
+    if (Object.keys(overrides).length) i18n.values.set(key.id, overrides);
+
     return HttpResponse.json({ id: key.id, code: key.code, comment: key.comment });
   }),
 

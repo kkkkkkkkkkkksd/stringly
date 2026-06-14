@@ -15,6 +15,9 @@ export const cellSchema = z.object({
   status: cellStatusSchema.default('empty'),
   // для plural-разделов: формы CLDR (one/other/…). value = форма 'other' (для показа в гриде).
   plural: z.record(z.string(), z.string()).optional(),
+  // значение сгенерировано AI и ещё не отредактировано человеком (метка ✨AI). После
+  // ручной правки/сохранения сбрасывается в false (см. mock PATCH).
+  ai: z.boolean().default(false),
 });
 export type Cell = z.infer<typeof cellSchema>;
 

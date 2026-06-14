@@ -6,7 +6,7 @@ import { translationsApi } from '../api/translationsApi';
 export function useAddKey(pid: string, nsid: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { code: string; comment?: string }) =>
+    mutationFn: (input: { code: string; comment?: string; baseValue?: string; ai?: boolean }) =>
       translationsApi.addKey(pid, nsid, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects', pid, 'namespaces', nsid] }),
   });

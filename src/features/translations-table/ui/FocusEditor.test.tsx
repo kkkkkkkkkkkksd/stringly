@@ -13,8 +13,8 @@ const rows: TableRow[] = [
     code: '[copy]',
     comment: 'button',
     values: {
-      en: { value: 'Copy', status: 'reviewed' },
-      ar: { value: '', status: 'empty' },
+      en: { value: 'Copy', status: 'reviewed', ai: false },
+      ar: { value: '', status: 'empty', ai: false },
     },
   },
 ];

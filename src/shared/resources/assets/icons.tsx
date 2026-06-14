@@ -164,6 +164,14 @@ export const EyeOffIcon = (p: IconProps): ReactNode => (
   </Svg>
 );
 
+// Искра / AI (авто-перевод).
+export const SparkleIcon = (p: IconProps): ReactNode => (
+  <Svg {...p}>
+    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z" {...line} />
+    <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z" {...line} />
+  </Svg>
+);
+
 // Выход (logout).
 export const LogoutIcon = (p: IconProps): ReactNode => (
   <Svg {...p}>

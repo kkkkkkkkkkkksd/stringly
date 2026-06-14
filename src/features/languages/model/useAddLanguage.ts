@@ -7,7 +7,7 @@ import { languagesApi } from '../api/languagesApi';
 export function useAddLanguage(pid: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (code: string) => languagesApi.add(pid, code),
+    mutationFn: (vars: { code: string; ai?: boolean }) => languagesApi.add(pid, vars.code, vars.ai),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.languages(pid) });
       qc.invalidateQueries({ queryKey: ['projects', pid, 'namespaces'] });

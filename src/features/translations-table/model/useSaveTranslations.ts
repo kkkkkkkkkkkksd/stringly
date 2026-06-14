@@ -20,6 +20,7 @@ function applyToRow(row: TableRow, changes: CellChange[]): TableRow {
     values[c.langCode] = {
       value: display,
       status: display ? 'reviewed' : 'empty',
+      ai: false, // ручная правка — больше не AI
       ...(c.plural ? { plural: c.plural } : {}),
     };
   }

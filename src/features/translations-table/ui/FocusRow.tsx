@@ -86,6 +86,7 @@ export const FocusRow = memo(function FocusRow({
             server={targetCell}
             rtl={target.rtl}
             editable={editable}
+            ai={!!targetCell?.ai}
           />
         ) : (
           <FocusStringInput
@@ -95,6 +96,7 @@ export const FocusRow = memo(function FocusRow({
             rtl={target.rtl}
             editable={editable}
             placeholder={placeholder}
+            ai={!!targetCell?.ai}
           />
         )}
       </div>

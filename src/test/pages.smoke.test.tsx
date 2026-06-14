@@ -20,7 +20,7 @@ function renderWithProviders(ui: ReactNode, route = '/') {
 describe('pages smoke', () => {
   it('лендинг рендерится', () => {
     renderWithProviders(<LandingPage />);
-    expect(screen.getByText(texts.landing.title)).toBeInTheDocument();
+    expect(screen.getByText(texts.landing.hero.titleAccent)).toBeInTheDocument();
   });
 
   it('экран входа рендерится с переключателем и кнопкой', () => {

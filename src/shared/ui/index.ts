@@ -9,6 +9,8 @@ export { Logo } from './Logo';
 export { Input } from './Input';
 export { Card } from './Card';
 export { Segmented } from './Segmented';
+export { Switch } from './Switch';
+export { ToggleField } from './ToggleField';
 export { InitialAvatar } from './InitialAvatar';
 export { Menu, MenuItem, MenuSeparator, MenuLabel } from './Menu';
 export { ProgressBar } from './ProgressBar';

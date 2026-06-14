@@ -1,10 +1,12 @@
 import { memo, type ReactNode } from 'react';
 import { pluralCategories } from '@/shared/core';
+import { SparkleIcon } from '@/shared/resources/assets';
 import { texts } from '@/shared/resources/i18n';
 import type { Cell } from '@/entities/translation';
 import { cellKeyOf, useEdits } from '../model/editsStore';
 
 const t = texts.app.table.focus;
+const tAi = texts.app.table.ai;
 
 const nonEmpty = (forms: Record<string, string>) =>
   Object.fromEntries(Object.entries(forms).filter(([, v]) => v.trim() !== ''));
@@ -17,12 +19,14 @@ export const FocusPluralInput = memo(function FocusPluralInput({
   server,
   rtl,
   editable,
+  ai,
 }: {
   keyId: string;
   langCode: string;
   server: Cell | undefined;
   rtl: boolean;
   editable: boolean;
+  ai: boolean;
 }): ReactNode {
   const cellKey = cellKeyOf(keyId, langCode);
   const edit = useEdits((s) => s.edits[cellKey]);
@@ -41,8 +45,19 @@ export const FocusPluralInput = memo(function FocusPluralInput({
     else setEdit(cellKey, { plural: cleaned });
   };
 
+  const showAi = ai && edit === undefined;
+
   return (
     <div className="space-y-1.5">
+      {showAi ? (
+        <span
+          title={tAi.tooltip}
+          className="inline-flex items-center gap-1 rounded-full bg-primary-tint px-2 py-0.5 text-[10px] font-semibold text-primary-hover"
+        >
+          <SparkleIcon size={11} />
+          {tAi.badge}
+        </span>
+      ) : null}
       {cats.map((cat) => {
         const dirty = edit !== undefined;
         return (
